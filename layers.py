@@ -18,12 +18,14 @@ class Layer:
 class ConvolutionLayer(Layer):
 
 
-    def __init__(self, filterNumber, filterSize, stride, activationFunction):
+    def __init__(self, filterNumber, filterSize, stride, activationFunction\
+                 learningRate):
         self.filters = []
         self.bias = 0 #TODO: implement multiple filters per layer?
         for i in range(0, filterNumber):
             self.filters.append(np.matrix(np.array((filterSize,filterSize))))
         self.stride = stride
+        self.learningRate = learningRate
         self.activationFunction = activationFunction
         self.data = None
         self.inputSize = 0
@@ -41,14 +43,18 @@ class ConvolutionLayer(Layer):
         self.inputSize = input[0].shape[0]
         outputShape = self.inputSize - self.filterSize + 1
         self.z = np.matrix(np.array(outputShape,outputShape))
+
         for i in range(0, self.inputSize - self.filterSize):
             for j in range(0, self.inputSize - self.filterSize):
                 for a in range(0, self.filterSize):
                     for b in range(0, self.filterSize):
                         for (d,x) in enumerate(input):
+
                             self.z[i,j] += self.filters[d][a,b] * \
                             x[i*self.stride + a, j*self.stride + b])
+
                 self.z[i,j] += self.bias
+
         return self.activationFunction.activate(self.z)
 
 
@@ -65,8 +71,10 @@ class ConvolutionLayer(Layer):
 
             for i in range(0, self.inputSize - self.filterSize):
                 for j in range(0, self.inputSize - self.filterSize):
+
                     outputError = errors[d][i,j] * \
                                 self.activationFunction.derived(self.z[i,j])
+
                     for a in range(0, self.filterSize):
                         for b in range(0, self.filterSize):
 
@@ -78,9 +86,52 @@ class ConvolutionLayer(Layer):
 
                     biasError += self.bias*outputError
 
-        #TODO: weight corrections
+        self.correctWeights(weightErrors, biasError)
 
         return previousErrors
 
-class MaxpoolLayer(Layer):
-    pass
+    def correctWeights(weightErrors, biasError):
+
+        for filter in self.filters:
+            for a in range(0, self.filterSize):
+                for b in range(0, self.filterSize):
+
+                    filter[d][a,b] += self.learningRate * weightErrors[d][a,b]
+
+        self.bias += self.learningRate* biasError
+
+
+
+class PoolLayer(Layer):
+
+    def __init__(self, activationFunction, clusterSize = 2):
+        self.clusterSize = clusterSize
+        self.maxPositions = []
+        self.activationFunction = activationFunction
+
+
+    def propagateForward(self, input):
+
+        self.inputSize = input[0].shape[0]
+        outputShape = self.inputSize - self.clusterSize + 1
+        self.z = np.matrix(np.array(outputShape,outputShape))
+
+        for i in range(0, input.shape[0] - self.clusterSize + 1 ):
+            for j in range(0, input.shape[1] - self.clusterSize + 1):
+
+                max = 0
+
+                for k in range(0, self.clusterSize):
+                    for l in range(0, self.clusterSize):
+
+                        if(input[i+k, j+l] > max):
+                            max = input[i+k, j+l]
+
+                self.maxPositions.append((i,j))
+                self.z[i,j] = max
+
+        return self.activationFunction(self.z)
+
+
+    def propagateBackwards(self):
+        pass
