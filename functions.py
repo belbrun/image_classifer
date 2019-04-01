@@ -10,8 +10,8 @@ class Function:
 
 class Identity(Function):
 
-    def activate():
-        return 1
+    def activate(self, data):
+        return data
 
     def derived():
         return 1

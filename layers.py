@@ -1,7 +1,7 @@
 import numpy as np
 
 
-@abstract
+
 class Layer:
 
     def __init__(self, weights, activationFunction):
@@ -22,16 +22,19 @@ class ConvolutionLayer(Layer):
         self.filters = []
         self.bias = 0 #TODO: implement multiple filters per layer?
         for i in range(0, filterNumber):
-            self.filters.append(np.matrix(np.array((filterSize,filterSize))))
+            self.filters.append(np.matrix(np.ones((filterSize,filterSize))))
         self.stride = stride
+        self.filterSize = filterSize
         self.activationFunction = activationFunction
         self.data = None
         self.inputSize = 0
         self.z = None
 
 
-    @static
+
     def generateConvolutionLayer():
+
+        pass
     """
         Returns a new convolution layer given the input data parameters.
     """
@@ -40,14 +43,16 @@ class ConvolutionLayer(Layer):
         self.data = input
         self.inputSize = input[0].shape[0]
         outputShape = self.inputSize - self.filterSize + 1
-        self.z = np.matrix(np.array(outputShape,outputShape))
+        self.z = np.matrix(np.zeros((outputShape,outputShape)))
+        print(outputShape)
+        print(self.z)
         for i in range(0, self.inputSize - self.filterSize):
             for j in range(0, self.inputSize - self.filterSize):
                 for a in range(0, self.filterSize):
                     for b in range(0, self.filterSize):
                         for (d,x) in enumerate(input):
                             self.z[i,j] += self.filters[d][a,b] * \
-                            x[i*self.stride + a, j*self.stride + b])
+                            x[i*self.stride + a, j*self.stride + b]
                 self.z[i,j] += self.bias
         return self.activationFunction.activate(self.z)
 
@@ -58,10 +63,10 @@ class ConvolutionLayer(Layer):
 
         for (d,x) in enumerate(self.data):
 
-            weightErrors.append\ #TODO: check line breaking
-            (np.matrix(np.array(self.filterSize,self.filterSize)))
-            previousErrors.append\
-            (np.matrix(np.array(self.inputSize,self.inputSize)))
+            weightErrors.append \
+            (np.matrix(np.zeros(self.filterSize,self.filterSize)))
+            previousErrors.append \
+            (np.matrix(np.zeros(self.inputSize,self.inputSize)))
 
             for i in range(0, self.inputSize - self.filterSize):
                 for j in range(0, self.inputSize - self.filterSize):
