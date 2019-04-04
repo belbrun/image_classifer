@@ -102,7 +102,7 @@ class ConvolutionLayer(Layer):
 
 
 
-class PoolLayer(Layer):
+class MaxpoolLayer(Layer):
 
     def __init__(self, activationFunction, clusterSize = 2):
         self.clusterSize = clusterSize
@@ -116,8 +116,8 @@ class PoolLayer(Layer):
         outputShape = self.inputSize - self.clusterSize + 1
         self.z = np.matrix(np.array(outputShape,outputShape))
 
-        for i in range(0, input.shape[0] - self.clusterSize + 1 ):
-            for j in range(0, input.shape[1] - self.clusterSize + 1):
+        for i in range(0, self.inputSize - self.clusterSize + 1 ):
+            for j in range(0, self.inputSize - self.clusterSize + 1):
 
                 max = 0
 
@@ -127,11 +127,21 @@ class PoolLayer(Layer):
                         if(input[i+k, j+l] > max):
                             max = input[i+k, j+l]
 
-                self.maxPositions.append((i,j))
-                self.z[i,j] = max
+                self.maxPositions.append((i+k, j+l))
+                self.z[i, j] = max
 
         return self.activationFunction(self.z)
 
 
-    def propagateBackwards(self):
-        pass
+    def propagateBackwards(self, errors):
+
+        previousErrors = np.matrix(np.zeros(self.inputSize,self.inputSize))
+        outputShape = self.inputSize - self.clusterSize + 1
+
+        for i in range(0, outputShape):
+            for j in range(0, outputShape):
+
+                previousErrors[self.maxPositions[0], self.maxPositions[1]] = \
+                            errors[i,j]
+
+        return previousErrors
