@@ -18,8 +18,8 @@ class Layer:
 class ConvolutionLayer(Layer):
 
 
-    def __init__(self, filterNumber, filterSize, stride, activationFunction\
-                 learningRate):
+    def __init__(self, filterNumber, filterSize, stride, activationFunction,
+                 learningRate = 0.1):
         self.filters = []
         self.bias = 0 #TODO: implement multiple filters per layer?
         for i in range(0, filterNumber):
@@ -113,10 +113,10 @@ class MaxpoolLayer(Layer):
 
     def propagateForward(self, input):
 
-        self.inputSize = input[0].shape[0]
+        self.inputSize = input.shape[0]
         outputShape = self.inputSize - self.clusterSize + 1
-        self.z = np.matrix(np.array(outputShape,outputShape))
-
+        self.z = np.matrix(np.empty((outputShape,outputShape)))
+        
         for i in range(0, self.inputSize - self.clusterSize + 1 ):
             for j in range(0, self.inputSize - self.clusterSize + 1):
 
@@ -131,7 +131,7 @@ class MaxpoolLayer(Layer):
                 self.maxPositions.append((i+k, j+l))
                 self.z[i, j] = max
 
-        return self.activationFunction(self.z)
+        return self.activationFunction.activate(self.z)
 
 
     def propagateBackwards(self, errors):
