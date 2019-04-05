@@ -19,17 +19,28 @@ class ConvolutionLayer(Layer):
 
 
     def __init__(self, filterNumber, filterSize, stride, activationFunction\
-                 learningRate):
-        self.filters = []
-        self.bias = 0 #TODO: implement multiple filters per layer?
-        for i in range(0, filterNumber):
-            self.filters.append(np.matrix(np.array((filterSize,filterSize))))
+                 learningRate, inputDepth):
+
+        self.filters = initializeFilters(filterNumber, inputDepth, filterSize)
+        self.bias = np.zeros(filterNumber)
         self.stride = stride
         self.learningRate = learningRate
         self.activationFunction = activationFunction
         self.data = None
         self.inputSize = 0
-        self.z = None
+
+    def initializeFilters(filterNumber, inputDepth, filterSize):
+
+        filters = []
+        for j in range(0, filterNumber):
+            for i in range(0, inputDepth):
+
+                filterGroup = []
+                filterGroup.append(np.matrix(np.ones((filterSize,filterSize))))
+
+            filters.append(filterGroup)
+
+        return filters
 
 
     @static
@@ -41,19 +52,25 @@ class ConvolutionLayer(Layer):
     def propagateForward(self, input):
         self.data = input
         self.inputSize = input[0].shape[0]
+        self.z = []
         outputShape = self.inputSize - self.filterSize + 1
-        self.z = np.matrix(np.array(outputShape,outputShape))
+        for (index,filterGroup) in enumerate(self.filters):
 
-        for i in range(0, self.inputSize - self.filterSize):
-            for j in range(0, self.inputSize - self.filterSize):
-                for a in range(0, self.filterSize):
-                    for b in range(0, self.filterSize):
-                        for (d,x) in enumerate(input):
+            self.z.append(np.matrix(np.zeros(outputShape,outputShape)))
 
-                            self.z[i,j] += self.filters[d][a,b] * \
-                            x[i*self.stride + a, j*self.stride + b])
+            for i in range(0, self.inputSize - self.filterSize):
+                for j in range(0, self.inputSize - self.filterSize):
+                    for a in range(0, self.filterSize):
+                        for b in range(0, self.filterSize):
+                            for (d,x) in enumerate(input):
 
-                self.z[i,j] += self.bias
+                                self.z[index][i,j] += self.filterGroup[d][a,b] * \
+                                    x[i*self.stride + a, j*self.stride + b])
+
+                    self.z[i,j] += self.bias[index]
+
+            output.append()
+
 
         return self.activationFunction.activate(self.z)
 
@@ -61,44 +78,55 @@ class ConvolutionLayer(Layer):
     def propagateBackwards(self, errors):
         weightErrors = []
         previousErrors = []
+        biasError = []
 
-        for (d,x) in enumerate(self.data):
 
-            weightErrors.append\ #TODO: check line breaking
-            (np.matrix(np.array(self.filterSize,self.filterSize)))
-            previousErrors.append\
-            (np.matrix(np.array(self.inputSize,self.inputSize)))
+        for (index, filterGroup) in enumerate(self.filters):
 
-            for i in range(0, self.inputSize - self.filterSize):
-                for j in range(0, self.inputSize - self.filterSize):
+            weightErrors.append([])
 
-                    outputError = errors[d][i,j] * \
-                                self.activationFunction.derived(self.z[i,j])
+            biasErrors.append(0)
 
-                    for a in range(0, self.filterSize):
-                        for b in range(0, self.filterSize):
+            for (d,x) in enumerate(self.data):
 
-                            weightError[d][a,b] +=  \
-                            self.data[i+a, j+b] * outputError
+                weightErrors[index].append\
+                    (np.matrix(np.zeros(self.filterSize,self.filterSize)))
 
-                            previousErrors[d][i*self.stride + a, j*self.stride + b] +=\
-                            outputError * self.filters[d][a,b]
+                previousErrors.append\
+                (np.matrix(np.array(self.inputSize,self.inputSize)))
 
-                    biasError += self.bias*outputError
+                for i in range(0, self.inputSize - self.filterSize):
+                    for j in range(0, self.inputSize - self.filterSize):
 
-        self.correctWeights(weightErrors, biasError)
+                        outputError = errors[d][i,j] * \
+                            self.activationFunction.derived(self.z[index][i,j])
+
+                        for a in range(0, self.filterSize):
+                            for b in range(0, self.filterSize):
+
+                                weightErrors[index][d][a,b] +=  \
+                                    x[i+a, j+b] * outputError
+
+                                previousErrors[d][i*self.strid +a, j*self.stride+b]\
+                                    += outputError * self.filters[index][d][a,b]
+
+                    biasErrors += self.bias[index]*outputError
+
+        self.correctWeights(weightErrors, biasErrors)
 
         return previousErrors
 
     def correctWeights(weightErrors, biasError):
 
-        for filter in self.filters:
-            for a in range(0, self.filterSize):
-                for b in range(0, self.filterSize):
+        for (index, filterGroup) in self.filters:
+            for (d, filter) in filterGroup:
+                for a in range(0, self.filterSize):
+                    for b in range(0, self.filterSize):
 
-                    filter[d][a,b] += self.learningRate * weightErrors[d][a,b]
+                        filter[d][a,b] += \
+                        self.learningRate * weightErrors[index][d][a,b]
 
-        self.bias += self.learningRate* biasError
+            self.bias[index] += self.learningRate* biasError[index]
 
 
 
@@ -108,40 +136,53 @@ class MaxpoolLayer(Layer):
         self.clusterSize = clusterSize
         self.maxPositions = []
         self.activationFunction = activationFunction
+        self.z = []
+        self.dataLength = 0
 
 
     def propagateForward(self, input):
 
+        self.dataLength = length(input)
         self.inputSize = input[0].shape[0]
         outputShape = self.inputSize - self.clusterSize + 1
-        self.z = np.matrix(np.array(outputShape,outputShape))
 
-        for i in range(0, self.inputSize - self.clusterSize + 1 ):
-            for j in range(0, self.inputSize - self.clusterSize + 1):
+        for (d, data) in enumerate(input):
 
-                max = 0
+            self.z.append(np.matrix(np.empty(outputShape,outputShape)))
+            maxPositions.append([])
 
-                for k in range(0, self.clusterSize):
-                    for l in range(0, self.clusterSize):
+            for i in range(0, self.inputSize - self.clusterSize + 1 ):
+                for j in range(0, self.inputSize - self.clusterSize + 1):
 
-                        if(input[i+k, j+l] > max):
-                            max = input[i+k, j+l]
+                    max = 0
 
-                self.maxPositions.append((i+k, j+l))
-                self.z[i, j] = max
+                    for k in range(0, self.clusterSize):
+                        for l in range(0, self.clusterSize):
+
+                            if(data[i+k, j+l] > max):
+                                max = data[i+k, j+l]
+
+                    self.maxPositions[d].append((i+k, j+l))
+                    self.z[d][i, j] = max
 
         return self.activationFunction(self.z)
 
 
     def propagateBackwards(self, errors):
 
-        previousErrors = np.matrix(np.zeros(self.inputSize,self.inputSize))
+        previousErrors = []
         outputShape = self.inputSize - self.clusterSize + 1
 
-        for i in range(0, outputShape):
-            for j in range(0, outputShape):
+        for d in range(0, self.dataLength)
 
-                previousErrors[self.maxPositions[0], self.maxPositions[1]] = \
-                            errors[i,j]
+            previousErrors.append\
+                (np.matrix(np.zeros(self.inputSize,self.inputSize)))
+
+            for i in range(0, outputShape):
+                for j in range(0, outputShape):
+
+                    previousErrors[d]\
+                    [self.maxPositions[d][0], self.maxPositions[d][1]] = \
+                            errors[d][i,j]
 
         return previousErrors
