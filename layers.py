@@ -181,8 +181,16 @@ class MaxpoolLayer(Layer):
             for i in range(0, outputShape):
                 for j in range(0, outputShape):
 
-                    previousErrors[d]\
-                    [self.maxPositions[d][0], self.maxPositions[d][1]] = \
-                            errors[d][i,j]
+                    x, y = self.maxPositions[d][0], self.maxPositions[d][1]
+                    previousErrors[d][x,y] = errors[d][i,j]
 
         return previousErrors
+
+class FullyConnectedLayer(Layer):
+
+    def __init__(self, size, inputSize):
+
+        self.size = size
+        self.weights = []
+
+        
