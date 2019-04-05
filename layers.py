@@ -21,7 +21,7 @@ class ConvolutionLayer(Layer):
     def __init__(self, filterNumber, filterSize, stride, activationFunction\
                  learningRate, inputDepth):
 
-        self.filters = initializeFilters(filterNumber, inputDepth, filterSize)
+        self.filters = self.initializeFilters(filterNumber, inputDepth, filterSize)
         self.bias = np.zeros(filterNumber)
         self.stride = stride
         self.learningRate = learningRate
@@ -29,7 +29,7 @@ class ConvolutionLayer(Layer):
         self.data = None
         self.inputSize = 0
 
-    def initializeFilters(filterNumber, inputDepth, filterSize):
+    def initializeFilters(self, filterNumber, inputDepth, filterSize):
 
         filters = []
         for j in range(0, filterNumber):
@@ -186,11 +186,51 @@ class MaxpoolLayer(Layer):
 
         return previousErrors
 
+class FlatteningLayer(Layer):
+
+
 class FullyConnectedLayer(Layer):
 
-    def __init__(self, size, inputSize):
-
+    def __init__(self, size, inputSize, inputDepth, activationFunction):
         self.size = size
-        self.weights = []
+        self.weights = self.initializeWeights(size, inputSize, inputDepth)
+        self.bias = [1]*size
+        self.activationFunction = activationFunction
+        self.z = None
+        self.data = None   
 
-        
+    def initializeWeights(self, size, inputSize, inputDepth):
+
+        weights = []
+        for i in range(0, size):
+
+            weights.append(np.matrix(np.ones(inputSize^2 * inputDepth)))
+
+        return weights
+
+    def propagateForward(self, input):
+
+        self.data = input
+        self.z = np.matrix(np.empty(self.size))
+
+        if (length(input.shape) > 1)
+            input = self.flatten(input)
+
+        for i in range(0, self.size):
+            self.z[i] = input.dot(self.weights[i]) + self.bias[i]
+
+        return self.activationFunction.activate(self.z)
+
+
+    def propagateBackwards(self, errors):
+        pass
+
+
+    def flatten(self, data):
+
+        flatData = np.matrix(np.empty(0))
+
+        for layer in data:
+            flatData.append(layer.flatten())
+
+        return flatData
