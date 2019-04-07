@@ -186,11 +186,13 @@ class MaxpoolLayer(Layer):
 
 class FullyConnectedLayer(Layer):
 
-    def __init__(self, size, inputSize, inputDepth, activationFunction):
+    def __init__(self, size, inputSize, inputDepth, activationFunction,
+                    learningRate):
         self.size = size
         self.weights = self.initializeWeights(size, inputSize, inputDepth)
         self.bias = [1]*size
         self.activationFunction = activationFunction
+        self.learningRate = learningRate
         self.z = None
         self.data = None
 
@@ -269,6 +271,16 @@ class FullyConnectedLayer(Layer):
         self.correnctWeights(weightErrors, biasErrors)
         return previousErrors
 
+    def correctWeights(self, weightErrors, biasErrors):
+
+            for neuronIndex in range(0, self.size):
+                for i in range(0, self.inputSize^2 * self.inputDepth):
+
+                    self.weights[neuronIndex][i] += \
+                        self.learningRate * self.weightErrors[neuronIndex][i]
+
+                self.bias[neuronIndex] += \
+                    self.learningRate * self.biasErrors[neuronIndex]
 
     def flatten(self, data):
 
