@@ -18,7 +18,7 @@ class Layer:
 class ConvolutionLayer(Layer):
 
 
-    def __init__(self, filterNumber, filterSize, stride, activationFunction\
+    def __init__(self, filterNumber, filterSize, stride, activationFunction,\
                  learningRate, inputDepth):
 
         self.filters = self.initializeFilters(filterNumber, inputDepth, filterSize)
@@ -43,11 +43,7 @@ class ConvolutionLayer(Layer):
         return filters
 
 
-    @static
-    def generateConvolutionLayer():
-    """
-        Returns a new convolution layer given the input data parameters.
-    """
+
 
     def propagateForward(self, input):
         self.data = input
@@ -65,7 +61,7 @@ class ConvolutionLayer(Layer):
                             for (d,x) in enumerate(input):
 
                                 self.z[index][i,j] += self.filterGroup[d][a,b] * \
-                                    x[i*self.stride + a, j*self.stride + b])
+                                    x[i*self.stride + a, j*self.stride + b]
 
                     self.z[i,j] += self.bias[index]
 
@@ -91,9 +87,8 @@ class ConvolutionLayer(Layer):
 
                 weightErrors[index].append\
                     (np.matrix(np.zeros(self.filterSize,self.filterSize)))
-
                 previousErrors.append\
-                (np.matrix(np.array(self.inputSize,self.inputSize)))
+                    (np.matrix(np.array(self.inputSize,self.inputSize)))
 
                 for i in range(0, self.inputSize - self.filterSize):
                     for j in range(0, self.inputSize - self.filterSize):
@@ -107,16 +102,16 @@ class ConvolutionLayer(Layer):
                                 weightErrors[index][d][a,b] +=  \
                                     x[i+a, j+b] * outputError
 
-                                previousErrors[d][i*self.strid +a, j*self.stride+b]\
+                                previousErrors[d][i*self.stride +a, j*self.stride+b]\
                                     += outputError * self.filters[index][d][a,b]
 
-                    biasErrors += self.bias[index]*outputError
+                    biasErrors[index] += self.bias[index]*outputError
 
         self.correctWeights(weightErrors, biasErrors)
 
         return previousErrors
 
-    def correctWeights(weightErrors, biasError):
+    def correctWeights(weightErrors, biasErrors):
 
         for (index, filterGroup) in self.filters:
             for (d, filter) in filterGroup:
@@ -124,9 +119,9 @@ class ConvolutionLayer(Layer):
                     for b in range(0, self.filterSize):
 
                         filter[d][a,b] += \
-                        self.learningRate * weightErrors[index][d][a,b]
+                            self.learningRate * weightErrors[index][d][a,b]
 
-            self.bias[index] += self.learningRate* biasError[index]
+            self.bias[index] += self.learningRate* biasErrors[index]
 
 
 
@@ -142,7 +137,7 @@ class MaxpoolLayer(Layer):
 
     def propagateForward(self, input):
 
-        self.dataLength = length(input)
+        self.dataLength = len(input)
         self.inputSize = input[0].shape[0]
         outputShape = self.inputSize - self.clusterSize + 1
 
@@ -173,7 +168,7 @@ class MaxpoolLayer(Layer):
         previousErrors = []
         outputShape = self.inputSize - self.clusterSize + 1
 
-        for d in range(0, self.dataLength)
+        for d in range(0, self.dataLength):
 
             previousErrors.append\
                 (np.matrix(np.zeros(self.inputSize,self.inputSize)))
@@ -186,7 +181,7 @@ class MaxpoolLayer(Layer):
 
         return previousErrors
 
-class FlatteningLayer(Layer):
+
 
 
 class FullyConnectedLayer(Layer):
@@ -197,7 +192,7 @@ class FullyConnectedLayer(Layer):
         self.bias = [1]*size
         self.activationFunction = activationFunction
         self.z = None
-        self.data = None   
+        self.data = None
 
     def initializeWeights(self, size, inputSize, inputDepth):
 
@@ -213,17 +208,66 @@ class FullyConnectedLayer(Layer):
         self.data = input
         self.z = np.matrix(np.empty(self.size))
 
-        if (length(input.shape) > 1)
+        if len(input.shape) > 1:
             input = self.flatten(input)
 
         for i in range(0, self.size):
             self.z[i] = input.dot(self.weights[i]) + self.bias[i]
 
-        return self.activationFunction.activate(self.z)
+        return self.activationFunction.activate([self.z])
 
 
     def propagateBackwards(self, errors):
-        pass
+
+        weightErrors = []
+        previousErrors = []
+        biasErrors = [0] * self.size
+        inputShape = self.data[0].shape
+
+        for i in range(0, len(self.data)):
+            previousErrors.append(np.matrix(np.zeros(inputShape)))
+
+        for neuronIndex in range(0, self.size):
+
+            weightErrors.append(np.matrix(np.zeros(inputSize^2 * inputDepth)))
+
+            if len(inputShape) > 1 :
+
+                for i in range(0, inputShape[0]):
+                    for j in range(0, inputShape[1]):
+
+                        position = inputShape[0] * i + j
+                        outputError = errors[neuronIndex] * \
+                            self.activationFunction.derived(self.z[position])
+
+                        for dataLayer in range(0, len(self.data)):
+
+                            weightErrors[neuronIndex][position] += \
+                                self.data[dataLayer][i, j] * outputError
+                            previousErrors[dataLayer][i, j] += \
+                                self.weights[neuronIndex][position] * outputError
+
+                        biasErrors += self.bias[neuronIndex] * outputError
+
+
+            else:
+
+                for i in range(inputShape[0]):
+
+                    outputError = errors[neuronIndex] * \
+                        self.activationFunction.derived(self.z[i])
+
+                    for dataLayer in range(0, len(self.data)):
+
+                        weightErrors[neuronIndex][i] += \
+                            self.data[dataLayer][i] * outputError
+                        previousErrors[dataLayer][i] += \
+                            self.weights[neuronIndex][i] * outputError
+
+                    biasErrors += self.bias[neuronIndex] * outputError
+
+        self.correnctWeights(weightErrors, biasErrors)
+        return previousErrors
 
 
     def flatten(self, data):
