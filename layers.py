@@ -72,27 +72,25 @@ class ConvolutionLayer(Layer):
 
 
     def propagateBackwards(self, errors):
-        weightErrors = []
+
+        weightErrors = [[]] * self.filterNumber
         previousErrors = []
-        biasError = []
+        biasError = [0]* self.filterNumber
 
+        for (d,x) in enumerate(self.data):
 
-        for (index, filterGroup) in enumerate(self.filters):
+            previousErrors.append\
+                (np.matrix(np.array(self.inputSize,self.inputSize)))
 
-            weightErrors.append([])
-            biasErrors.append(0)
-
-            for (d,x) in enumerate(self.data):
+            for (index, filterGroup) in enumerate(self.filters):
 
                 weightErrors[index].append\
                     (np.matrix(np.zeros(self.filterSize,self.filterSize)))
-                previousErrors.append\
-                    (np.matrix(np.array(self.inputSize,self.inputSize)))
 
                 for i in range(0, self.inputSize - self.filterSize):
                     for j in range(0, self.inputSize - self.filterSize):
 
-                        outputError = errors[d][i,j] * \
+                        outputError = errors[index][i,j] * \
                             self.activationFunction.derived(self.z[index][i,j])
 
                         for a in range(0, self.filterSize):
@@ -100,7 +98,6 @@ class ConvolutionLayer(Layer):
 
                                 weightErrors[index][d][a,b] +=  \
                                     x[i+a, j+b] * outputError
-
                                 previousErrors[d][i*self.stride +a, j*self.stride+b]\
                                     += outputError * self.filters[index][d][a,b]
 
@@ -117,7 +114,7 @@ class ConvolutionLayer(Layer):
                 for a in range(0, self.filterSize):
                     for b in range(0, self.filterSize):
 
-                        filter[d][a,b] += \
+                        filter[index][d][a,b] += \
                             self.learningRate * weightErrors[index][d][a,b]
 
             self.bias[index] += self.learningRate* biasErrors[index]
@@ -175,7 +172,7 @@ class MaxpoolLayer(Layer):
             for i in range(0, outputShape):
                 for j in range(0, outputShape):
 
-                    x, y = self.maxPositions[d][0], self.maxPositions[d][1]
+                    x, y = self.maxPositions[d]
                     previousErrors[d][x,y] = errors[d][i,j]
 
         return previousErrors
