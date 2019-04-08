@@ -17,11 +17,6 @@ def output(self, x):
         the training or test set)
     """
 
-    # For each layer - calcuate the output of that layer and use it
-    # as input to the following layer. The method should return the
-    # output of the last layer. The input to the first layer is the
-    # vector x.
-
     for layer in self.layers:
         x = layer.propagateForward(x)
 
@@ -68,4 +63,4 @@ def train(self, data, results, learningRate):
 
         output = self.output(data[i])
         errors = self.calculateError(output, results[i])
-        self.learn()
+        self.learn(errors)
