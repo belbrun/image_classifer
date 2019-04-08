@@ -281,12 +281,3 @@ class FullyConnectedLayer(Layer):
 
                 self.bias[neuronIndex] += \
                     self.learningRate * self.biasErrors[neuronIndex]
-
-    def flatten(self, data):
-
-        flatData = np.matrix(np.empty(0))
-
-        for layer in data:
-            flatData.append(layer.flatten())
-
-        return flatData
