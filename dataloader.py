@@ -14,8 +14,7 @@ def getInput(name, path = 'dataset/2/ALL_IDB2/img/' ):
             redArray[i,j] = pixelArray[i,j,0]
             greenArray[i,j] = pixelArray[i,j,1]
             blueArray[i,j] = pixelArray[i,j,2]
-    return [np.matrix(redArray),\
-        np.matrix(greenArray), np.matrix(blueArray)]
+    return [redArray, greenArray, blueArray]
 
 def getImageAsVector(name, path):
     image = Image.open(path + name, 'r')

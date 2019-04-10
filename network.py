@@ -1,7 +1,9 @@
+from functions import *
 
 class NeuralNetwork():
 
-    def __init__(self):
+    def __init__(self, errorFunction = simpleCost):
+        self.errorFunction = errorFunction
         self.layers = []
 
 
@@ -40,7 +42,10 @@ class NeuralNetwork():
     def calculateError(self, output, result):
 
         errors = []
-        return errors.append(self.errorFunction(output, result))
+        for i in range(0, len(result)):
+            errors.append(self.errorFunction(output[0][i], result[i]))
+
+        return np.array(errors)
 
     def getOverallError(self, outputs, results):
 
@@ -51,16 +56,16 @@ class NeuralNetwork():
 
         return error
 
-    def learn(errors):
+    def learn(self, errors):
 
         for layer in self.layers[::-1]:
+            print("E  :  ", errors)
             errors = layer.propagateBackwards(errors)
 
 
     def train(self, data, results, learningRate):
 
         for i in range(0, len(data)):
-
             output = self.output(data[i])
             errors = self.calculateError(output, results[i])
             self.learn(errors)

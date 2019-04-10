@@ -11,7 +11,8 @@ def main():
     neuralNet.addLayer(MaxpoolLayer(Identity()))
     neuralNet.addLayer(FlatteningLayer())
     neuralNet.addLayer(FullyConnectedLayer(3, 193548, Identity(),0.1))
-    neuralNet.train([rgbMatrices],[4000,2222,3333], 0.1)
+    #print(neuralNet.feed([rgbMatrices]))
+    neuralNet.train([rgbMatrices],[[4000,2222,3333]], 0.1)
 
 
 
