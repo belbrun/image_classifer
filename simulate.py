@@ -2,9 +2,19 @@ from dataloader import getInput
 from layers import *
 from functions import Identity
 from network import NeuralNetwork
+import numpy as np
 
 def main():
-    rgbMatrices =getInput('Im126_1.tif')
+    #rgbMatrices =getInput('Im126_1.tif')
+    testData = []
+    testData.append(np.resize(np.arange(9),(3,3)))
+    testData.append(np.resize(np.arange(9,18),(3,3)))
+    layer = FlatteningLayer()
+    output = layer.propagateForward(testData)
+    errors = layer.propagateBackwards(output)
+    print(testData, output, errors)
+    return
+
     print(rgbMatrices[0].shape)
     neuralNet = NeuralNetwork()
     neuralNet.addLayer(ConvolutionLayer(3,3,1,Identity(),0.1,3))

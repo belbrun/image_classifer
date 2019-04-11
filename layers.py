@@ -23,8 +23,9 @@ class ConvolutionLayer(Layer):
 
         self.filters = self.initializeFilters(filterNumber, inputDepth, filterSize)
         self.bias = np.zeros(filterNumber)
-        self.stride = stride
+        self.filterNumber = filterNumber
         self.filterSize = filterSize
+        self.stride = stride
         self.learningRate = learningRate
         self.activationFunction = activationFunction
         self.data = None
@@ -71,15 +72,15 @@ class ConvolutionLayer(Layer):
 
         weightErrors = [[]] * self.filterNumber
         previousErrors = []
-        biasError = [0]* self.filterNumber
+        biasErrors = [0]* self.filterNumber
 
         for (d,x) in enumerate(self.data):
 
-            previousErrors.append(np.array(self.inputSize,self.inputSize))
+            previousErrors.append(np.zeros((self.inputSize,self.inputSize)))
 
             for (index, filterGroup) in enumerate(self.filters):
 
-                weightErrors[index].append(np.zeros(self.filterSize,self.filterSize))
+                weightErrors[index].append(np.zeros((self.filterSize,self.filterSize)))
 
                 for i in range(0, self.inputSize - self.filterSize):
                     for j in range(0, self.inputSize - self.filterSize):
@@ -89,7 +90,6 @@ class ConvolutionLayer(Layer):
 
                         for a in range(0, self.filterSize):
                             for b in range(0, self.filterSize):
-
                                 weightErrors[index][d][a,b] +=  \
                                     x[i+a, j+b] * outputError
                                 previousErrors[d][i*self.stride +a, j*self.stride+b]\
@@ -101,14 +101,14 @@ class ConvolutionLayer(Layer):
 
         return previousErrors
 
-    def correctWeights(weightErrors, biasErrors):
+    def correctWeights(self, weightErrors, biasErrors):
 
-        for (index, filterGroup) in self.filters:
-            for (d, filter) in filterGroup:
+        for (index, filterGroup) in enumerate(self.filters):
+            for (d, filter) in enumerate(filterGroup):
                 for a in range(0, self.filterSize):
                     for b in range(0, self.filterSize):
 
-                        filter[index][d][a,b] += \
+                        filter[a,b] += \
                             self.learningRate * weightErrors[index][d][a,b]
 
             self.bias[index] += self.learningRate* biasErrors[index]
@@ -165,7 +165,7 @@ class MaxpoolLayer(Layer):
             for i in range(0, outputShape):
                 for j in range(0, outputShape):
 
-                    x, y = self.maxPositions[d]
+                    x, y = self.maxPositions[d][i * outputShape + j]
                     previousErrors[d][x,y] = errors[d][i,j]
 
         return previousErrors
@@ -199,7 +199,6 @@ class FlatteningLayer(Layer):
                 errors[layerIndex * layerLength: (layerIndex + 1) * layerLength]
             previousErrors.append\
                 (np.resize(layerErrors,(self.inputSize, self.inputSize)))
-            print(previousErrors)
         return previousErrors
 
 
@@ -248,7 +247,6 @@ class FullyConnectedLayer(Layer):
             weightErrors.append(np.zeros(self.inputSize))
             outputError = errors[neuronIndex] * \
                 self.activationFunction.derived(self.z[neuronIndex])
-            print("O ", outputError)
             for i in range(self.inputSize):
 
                 weightErrors[neuronIndex][i] += \
