@@ -90,6 +90,7 @@ class ConvolutionLayer(Layer):
 
                         for a in range(0, self.filterSize):
                             for b in range(0, self.filterSize):
+
                                 weightErrors[index][d][a,b] +=  \
                                     x[i+a, j+b] * outputError
                                 previousErrors[d][i*self.stride +a, j*self.stride+b]\

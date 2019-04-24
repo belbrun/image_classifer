@@ -1,8 +1,13 @@
-from dataloader import getInput
+from dataloader import *
 from layers import *
-from functions import Identity
+from functions import *
 from network import NeuralNetwork
 import numpy as np
+
+
+
+
+
 
 def main():
     #rgbMatrices =getInput('Im126_1.tif')
