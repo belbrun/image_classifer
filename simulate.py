@@ -14,7 +14,7 @@ def main():
     testData = []
     testData.append(np.resize(np.arange(9),(3,3)))
     testData.append(np.resize(np.arange(9,18),(3,3)))
-    layer = FlatteningLayer()
+    layer = ConvolutionLayer(3,3,1,ReLU(),0.1,3)
     output = layer.propagateForward(testData)
     errors = layer.propagateBackwards(output)
     print(testData, output, errors)

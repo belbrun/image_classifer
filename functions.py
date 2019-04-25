@@ -2,39 +2,13 @@ import numpy as np
 
 class Function:
 
-    def activate():
+    def activate(self, data):
         pass
 
     def derived():
         pass
 
-class Identity(Function):
-
-    def activate(self, data):
-        return data
-
-    def derived(self, data):
-        return 1
-
-class Sigmoid(Function):
-
-    def activate(self, data):
-        return forEachLayer(data,
-            lambda x : 1. / (1. + np.exp(-x))1. / (1. + np.exp(-x)))
-
-    def derived(self, data):
-        pass
-
-class ReLU(Function):
-    pass
-
-class LeakyLeRU(Function):
-    pass
-
-class TanHiperbolic(Function):
-    pass
-
-def forEachLayer(data, function):
+    def forEachLayer(self, data, function):
         outputs = []
         for x in data:
             y = function(x)
@@ -42,30 +16,50 @@ def forEachLayer(data, function):
 
         return outputs
 
+class Identity(Function):
 
-def sigmoid(x):
-	"""
-		Sigmoid transfer function
-	"""
-	return 1. / (1. + np.exp(-x))1. / (1. + np.exp(-x))
-
-def reLU(x):
-	"""
-		Rectifier transfer function
-	"""
-	return x * (x > 0)
-
-def leakyReLU(x):
-	"""
-		Leaky rectifier transfer function
-		if x > 0, return x ; else return 0.1 * x
-	"""
-	return x * (x > 0) + (.1 * x) * (x < 0)
+    def activate(self, x):
+        return 1
 
 
-def tanh(x):
+class Sigmoid(Function):
 
-	return np.tanh(x)
+    def activate(self, data):
+        return self.forEachLayer(data,
+            lambda x : 1. / (1. + np.exp(-x)))
+
+    def derived(self, x):
+        sigmX = 1. / (1. + np.exp(-x))
+        return sigmX * (1 - sigmX)
+
+
+class ReLU(Function):
+
+    def activate(self, data):
+        return self.forEachLayer(data,
+            lambda x : x * (x > 0))
+
+    def derived(self, data):
+        return 1 * (x > 0)
+
+
+class LeakyReLU(Function):
+
+    def activate(self, data):
+        return self.forEachLayer(data,
+            lambda x : x * (x > 0) + (.1 * x) * (x < 0))
+
+    def derived(self, data):
+        pass
+
+class TanHiperbolic(Function):
+
+    def activate(self, data):
+        return self.forEachLayer(data,
+            lambda x : np.tanh(x))
+
+    def derived(self, data):
+        pass
 
 
 
@@ -73,3 +67,9 @@ def tanh(x):
 def simpleCost(outputValue, correctValue):
     print(outputValue)
     return abs(correctValue - outputValue)
+
+
+
+if __name__ == '__main__':
+    x = LeakyReLU()
+    print(x.activate([2]))
