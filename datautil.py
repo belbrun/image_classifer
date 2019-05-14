@@ -1,5 +1,6 @@
 from PIL import Image
 import numpy as np
+import os
 
 #def loadImages
 
@@ -26,9 +27,23 @@ def getImageAsVector(name, path):
     return pixelArray
 
 
-def main():
-    rgbMatrices =getInput('Im126_1.tif')
-    print(rgbMatrices[0][255])
+def saveData(path, data):
+    with open(path + 'config.txt', 'w+') as file:
+        for information in data:
+            file.write(str(information)+'|')
 
-if __name__ == '__main__':
-    main()
+def loadData(path):
+        with open(path + 'config.txt', 'r+') as file:
+            return file.read().split('|')
+
+def makeDirectory(path):
+    os.mkdir(path)
+
+def getLayerIds(path):
+    layerIds = []
+    dirList = os.listdir(path)
+    dirList.sort()
+    for i in dirList:
+        with open(path + i + '/config.txt', 'r+') as file:
+            layerIds.append(file.read(4))
+    return layerIds

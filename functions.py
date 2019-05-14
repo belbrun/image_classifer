@@ -1,5 +1,8 @@
 import numpy as np
 
+def getActivationFunction(id):
+    return functions[id]
+
 class Function:
 
     def activate(self, data):
@@ -32,6 +35,9 @@ class Sigmoid(Function):
         sigmX = 1. / (1. + np.exp(-x))
         return sigmX * (1 - sigmX)
 
+    def getName(self):
+        return 'sig'
+
 
 class ReLU(Function):
 
@@ -41,6 +47,9 @@ class ReLU(Function):
 
     def derived(self, data):
         return 1 * (x > 0)
+
+    def getName(self):
+        return 'relu'
 
 
 class LeakyReLU(Function):
@@ -52,6 +61,9 @@ class LeakyReLU(Function):
     def derived(self, data):
         pass
 
+    def getName(self):
+        return 'lrelu'
+
 class TanHiperbolic(Function):
 
     def activate(self, data):
@@ -61,6 +73,11 @@ class TanHiperbolic(Function):
     def derived(self, data):
         pass
 
+    def getName(self):
+        return 'tanh'
+
+functions = {'sig':Sigmoid(), 'relu':ReLU(), 'lrelu': LeakyReLU(), \
+'tanh': TanHiperbolic}
 
 
 

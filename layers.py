@@ -1,4 +1,6 @@
 import numpy as np
+import datautil
+from functions import getActivationFunction
 
 
 
@@ -8,10 +10,16 @@ class Layer:
         self.weights = weights
         self.activationFunction = activationFunction
 
-    def propagateForward(self):
+    def propagateForward(self, input):
         pass
 
-    def propagateBackwards(self):
+    def propagateBackwards(self, errors):
+        pass
+
+    def save(self, path):
+        pass
+
+    def load(path):
         pass
 
 
@@ -19,10 +27,18 @@ class ConvolutionLayer(Layer):
 
 
     def __init__(self, filterNumber, filterSize, stride, activationFunction,\
-                 learningRate, inputDepth):
+                 learningRate, inputDepth, filters = None, bias = None):
 
-        self.filters = self.initializeFilters(filterNumber, inputDepth, filterSize)
-        self.bias = np.zeros(filterNumber)
+        if filters is not None:
+            self.filters = filters
+        else:
+            self.filters = ConvolutionLayer\
+                .initializeFilters(filterNumber, inputDepth, filterSize)
+        if bias is not None:
+            self.bias = bias
+        else:
+            self.bias = np.zeros(filterNumber)
+
         self.filterNumber = filterNumber
         self.filterSize = filterSize
         self.stride = stride
@@ -30,14 +46,20 @@ class ConvolutionLayer(Layer):
         self.activationFunction = activationFunction
         self.data = None
         self.inputSize = 0
+        self.inputDepth = inputDepth
 
-    def initializeFilters(self, filterNumber, inputDepth, filterSize):
+    def initializeFilters(filterNumber, inputDepth, filterSize, path = None):
 
         filters = []
-        for j in range(0, filterNumber):
+        for i in range(0, filterNumber):
             filterGroup = []
-            for i in range(0, inputDepth):
-                filterGroup.append(np.ones((filterSize,filterSize)))
+            for j in range(0, inputDepth):
+                filter = None
+                if path:
+                    filter = np.load(path+str(i)+str(j)+'.npy')
+                else:
+                    filter = np.ones((filterSize,filterSize))
+                filterGroup.append(filter)
             filters.append(filterGroup)
 
         return filters
@@ -114,14 +136,33 @@ class ConvolutionLayer(Layer):
 
             self.bias[index] += self.learningRate* biasErrors[index]
 
+    def save(self, path):
+        datautil.saveData(path, ['CONV', self.filterNumber, self.filterSize,\
+        self.stride, self.inputDepth, self.activationFunction.getName()])
+        for (i, filterGroup) in enumerate(self.filters):
+            for (j, filter) in enumerate(filterGroup):
+                np.save(path + str(i) + str(j), filter)
+        np.save(path + 'b', self.bias)
+
+    def load(path):
+        data = datautil.loadData(path)
+        filterNumber = int(data[1])
+        filterSize = int(data[2])
+        stride = int(data[3])
+        inputDepth = int(data[4])
+        activationFunction = getActivationFunction(data[5])
+        filters = ConvolutionLayer\
+            .initializeFilters(filterNumber, inputDepth, filterSize, path)
+        bias = np.load(path +'b.npy')
+        return ConvolutionLayer(filterNumber, filterSize, stride, activationFunction,\
+            0.1, inputDepth, filters, bias)
 
 
 class MaxpoolLayer(Layer):
 
-    def __init__(self, activationFunction, clusterSize = 2):
+    def __init__(self, clusterSize = 2):
         self.clusterSize = clusterSize
         self.maxPositions = []
-        self.activationFunction = activationFunction
         self.z = []
         self.dataLength = 0
 
@@ -153,7 +194,7 @@ class MaxpoolLayer(Layer):
                     self.maxPositions[d].append(maxPosition)
                     self.z[d][i, j] = max
 
-        return self.activationFunction.activate(self.z)
+        return self.z
 
 
     def propagateBackwards(self, errors):
@@ -172,6 +213,14 @@ class MaxpoolLayer(Layer):
                     previousErrors[d][x,y] += errors[d][i,j]
 
         return previousErrors
+
+    def save(self, path):
+        datautil.saveData(path, ['MAXP', self.clusterSize])
+
+    def load(path):
+        data = datautil.loadData(path)
+        return MaxpoolLayer(int(data[1]))
+
 
 class FlatteningLayer(Layer):
 
@@ -204,28 +253,49 @@ class FlatteningLayer(Layer):
                 (np.resize(layerErrors,(self.inputSize, self.inputSize)))
         return previousErrors
 
+    def save(self, path):
+        datautil.saveData(path, ['FLAT'])
 
+    def load(path):
+        return FlatteningLayer()
 
 
 
 
 class FullyConnectedLayer(Layer):
 
-    def __init__(self, size, inputSize, activationFunction, learningRate):
+    def __init__(self, size, inputSize, activationFunction, learningRate, \
+            weights = None, bias = None):
+
+        if weights is not None:
+            self.weights = weights
+        else :
+            self.weights = FullyConnectedLayer.initializeWeights(size, inputSize)
+
+        if bias is not None:
+            self.bias = bias
+        else :
+            self.bias = np.zeros(size)
+
+
         self.size = size
         self.inputSize = inputSize
-        self.weights = self.initializeWeights(size, inputSize)
-        self.bias = [1]*size
         self.activationFunction = activationFunction
         self.learningRate = learningRate
         self.z = None
         self.data = None
 
-    def initializeWeights(self, size, inputSize):
+    def initializeWeights(size, inputSize, path = None):
 
         weights = []
         for i in range(0, size):
-            weights.append(np.ones((inputSize,1)))
+            weightVector = None
+            if path:
+                weightVector = np.load(path + str(i) + '.npy')
+            else :
+                weightVector = np.ones((inputSize,1))
+
+            weights.append(weightVector)
 
         return weights
 
@@ -272,3 +342,28 @@ class FullyConnectedLayer(Layer):
 
                 self.bias[neuronIndex] += \
                     self.learningRate * biasErrors[neuronIndex]
+
+    def save(self, path):
+        datautil.saveData(path, ['FCON', self.size, self.inputSize, \
+            self.activationFunction.getName()])
+
+        for (i, weight) in enumerate(self.weights):
+            np.save(path + str(i), weight)
+
+        np.save(path + 'b', self.bias)
+
+    def load(path):
+        data = datautil.loadData(path)
+        size = int(data[1])
+        inputSize = int(data[2])
+        activationFunction = getActivationFunction(data[3])
+        weights = FullyConnectedLayer.initializeWeights(size, inputSize, path)
+        bias = np.load(path + 'b.npy')
+        return FullyConnectedLayer(size, inputSize, activationFunction, \
+            0.1, weights, bias)
+
+layerMap = {'CONV': ConvolutionLayer, 'MAXP': MaxpoolLayer, \
+        'FLAT': FlatteningLayer, 'FCON': FullyConnectedLayer}
+
+def getLayerById(id):
+    return layerMap[id]

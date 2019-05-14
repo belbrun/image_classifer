@@ -1,4 +1,6 @@
 from functions import *
+from layers import *
+import datautil
 
 class NeuralNetwork():
 
@@ -69,3 +71,15 @@ class NeuralNetwork():
             output = self.output(data[i])
             errors = self.calculateError(output, results[i])
             self.learn(errors)
+
+    def save(self, path):
+        for (index, layer) in enumerate(self.layers):
+            newPath = path + str(index) + '/'
+            datautil.makeDirectory(newPath)
+            layer.save(newPath)
+
+    def load(path):
+        network = NeuralNetwork()
+        for (index, id) in enumerate(datautil.getLayerIds(path)):
+            network.addLayer(\
+                getLayerById(id).load(path + str(index) + '/'))
