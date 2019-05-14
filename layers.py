@@ -27,7 +27,7 @@ class ConvolutionLayer(Layer):
 
 
     def __init__(self, filterNumber, filterSize, stride, activationFunction,\
-                 learningRate, inputDepth, filters = None, bias = None):
+                 inputDepth, filters = None, bias = None):
 
         if filters is not None:
             self.filters = filters
@@ -42,7 +42,6 @@ class ConvolutionLayer(Layer):
         self.filterNumber = filterNumber
         self.filterSize = filterSize
         self.stride = stride
-        self.learningRate = learningRate
         self.activationFunction = activationFunction
         self.data = None
         self.inputSize = 0
@@ -90,7 +89,7 @@ class ConvolutionLayer(Layer):
         return self.activationFunction.activate(self.z)
 
 
-    def propagateBackwards(self, errors):
+    def propagateBackwards(self, errors, learningRate):
 
         weightErrors = [[]] * self.filterNumber
         previousErrors = []
@@ -120,11 +119,11 @@ class ConvolutionLayer(Layer):
 
                     biasErrors[index] += self.bias[index]*outputError
 
-        self.correctWeights(weightErrors, biasErrors)
+        self.correctWeights(weightErrors, biasErrors, learningRate)
 
         return previousErrors
 
-    def correctWeights(self, weightErrors, biasErrors):
+    def correctWeights(self, weightErrors, biasErrors, learningRate):
 
         for (index, filterGroup) in enumerate(self.filters):
             for (d, filter) in enumerate(filterGroup):
@@ -132,9 +131,9 @@ class ConvolutionLayer(Layer):
                     for b in range(0, self.filterSize):
 
                         filter[a,b] += \
-                            self.learningRate * weightErrors[index][d][a,b]
+                            learningRate * weightErrors[index][d][a,b]
 
-            self.bias[index] += self.learningRate* biasErrors[index]
+            self.bias[index] += learningRate * biasErrors[index]
 
     def save(self, path):
         datautil.saveData(path, ['CONV', self.filterNumber, self.filterSize,\
@@ -197,7 +196,7 @@ class MaxpoolLayer(Layer):
         return self.z
 
 
-    def propagateBackwards(self, errors):
+    def propagateBackwards(self, errors, learningRate):
 
         previousErrors = []
         outputShape = self.inputSize - self.clusterSize + 1
@@ -240,7 +239,7 @@ class FlatteningLayer(Layer):
 
         return np.concatenate(input).ravel()
 
-    def propagateBackwards(self, errors):
+    def propagateBackwards(self, errors, learningRate):
 
         previousErrors = []
         layerLength = int(len(errors)/self.inputDepth)
@@ -264,8 +263,8 @@ class FlatteningLayer(Layer):
 
 class FullyConnectedLayer(Layer):
 
-    def __init__(self, size, inputSize, activationFunction, learningRate, \
-            weights = None, bias = None):
+    def __init__(self, size, inputSize, activationFunction,  \
+                    weights = None, bias = None):
 
         if weights is not None:
             self.weights = weights
@@ -281,7 +280,6 @@ class FullyConnectedLayer(Layer):
         self.size = size
         self.inputSize = inputSize
         self.activationFunction = activationFunction
-        self.learningRate = learningRate
         self.z = None
         self.data = None
 
@@ -309,7 +307,7 @@ class FullyConnectedLayer(Layer):
         return self.activationFunction.activate([self.z])
 
 
-    def propagateBackwards(self, errors):
+    def propagateBackwards(self, errors, learningRate):
 
         weightErrors = []
         previousErrors = np.zeros(self.inputSize)
@@ -329,7 +327,7 @@ class FullyConnectedLayer(Layer):
 
             biasErrors += self.bias[neuronIndex] * outputError
 
-        self.correctWeights(weightErrors, biasErrors)
+        self.correctWeights(weightErrors, biasErrors, learningRate)
         return previousErrors
 
     def correctWeights(self, weightErrors, biasErrors):
@@ -338,10 +336,10 @@ class FullyConnectedLayer(Layer):
                 for i in range(0, self.inputSize):
 
                     self.weights[neuronIndex][i] += \
-                        self.learningRate * weightErrors[neuronIndex][i]
+                        learningRate * weightErrors[neuronIndex][i]
 
                 self.bias[neuronIndex] += \
-                    self.learningRate * biasErrors[neuronIndex]
+                    learningRate * biasErrors[neuronIndex]
 
     def save(self, path):
         datautil.saveData(path, ['FCON', self.size, self.inputSize, \
