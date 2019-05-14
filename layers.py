@@ -49,7 +49,7 @@ class ConvolutionLayer(Layer):
         self.data = input
         self.inputSize = input[0].shape[0]
         self.z = []
-        outputShape = self.inputSize - self.filterSize + 1
+        outputShape = (self.inputSize - self.filterSize)/self.stride + 1
         for (index,filterGroup) in enumerate(self.filters):
 
             self.z.append(np.zeros((outputShape,outputShape)))
@@ -141,14 +141,16 @@ class MaxpoolLayer(Layer):
                 for j in range(0, self.inputSize - self.clusterSize + 1):
 
                     max = 0
+                    maxPosition = None
 
                     for k in range(0, self.clusterSize):
                         for l in range(0, self.clusterSize):
 
                             if(data[i+k, j+l] > max):
                                 max = data[i+k, j+l]
+                                maxPosition = (i+k, j+l)
 
-                    self.maxPositions[d].append((i+k, j+l))
+                    self.maxPositions[d].append(maxPosition)
                     self.z[d][i, j] = max
 
         return self.activationFunction.activate(self.z)
@@ -167,7 +169,7 @@ class MaxpoolLayer(Layer):
                 for j in range(0, outputShape):
 
                     x, y = self.maxPositions[d][i * outputShape + j]
-                    previousErrors[d][x,y] = errors[d][i,j]
+                    previousErrors[d][x,y] += errors[d][i,j]
 
         return previousErrors
 
