@@ -36,16 +36,18 @@ class NeuralNetwork():
 
 
     def feed(self, data):
-
         outputs = self.calculateOutputs(data)
         return outputs
+
+    def feedForError(self, x, result):
+        return self.calculateError(self.output(x), results)
 
 
     def calculateError(self, output, result):
 
         errors = []
         for i in range(0, len(result)):
-            errors.append(self.errorFunction(output[0][i], result[i]))
+            errors.append(self.errorFunction(output, result))
 
         return np.array(errors)
 
@@ -58,19 +60,17 @@ class NeuralNetwork():
 
         return error
 
-    def learn(self, errors):
+    def learn(self, errors, learningRate):
 
         for layer in self.layers[::-1]:
-            print("E  :  ", errors)
-            errors = layer.propagateBackwards(errors)
+            errors = layer.propagateBackwards(errors, learningRate)
 
 
-    def train(self, data, results, learningRate):
-
-        for i in range(0, len(data)):
-            output = self.output(data[i])
-            errors = self.calculateError(output, results[i])
-            self.learn(errors)
+    def train(self, x, results, learningRate):
+        output = self.output(x)
+        errors = self.errorFunction(output, results)
+        self.learn(errors, learningRate)
+        return errors
 
     def save(self, path):
         for (index, layer) in enumerate(self.layers):

@@ -28,6 +28,7 @@ class Identity(Function):
 class Sigmoid(Function):
 
     def activate(self, data):
+        print('Sig data:', data)
         return self.forEachLayer(data,
             lambda x : 1. / (1. + np.exp(-x)))
 
@@ -45,7 +46,7 @@ class ReLU(Function):
         return self.forEachLayer(data,
             lambda x : x * (x > 0))
 
-    def derived(self, data):
+    def derived(self, x):
         return 1 * (x > 0)
 
     def getName(self):
@@ -82,7 +83,7 @@ functions = {'sig':Sigmoid(), 'relu':ReLU(), 'lrelu': LeakyReLU(), \
 
 
 def simpleCost(outputValue, correctValue):
-    print(outputValue)
+    print('O: ', outputValue, ' C: ', correctValue)
     return abs(correctValue - outputValue)
 
 

@@ -37,7 +37,7 @@ class ConvolutionLayer(Layer):
         if bias is not None:
             self.bias = bias
         else:
-            self.bias = np.zeros(filterNumber)
+            self.bias = np.random.uniform(size=filterNumber)
 
         self.filterNumber = filterNumber
         self.filterSize = filterSize
@@ -57,7 +57,7 @@ class ConvolutionLayer(Layer):
                 if path:
                     filter = np.load(path+str(i)+str(j)+'.npy')
                 else:
-                    filter = np.ones((filterSize,filterSize))
+                    filter = np.random.uniform(size=(filterSize,filterSize))
                 filterGroup.append(filter)
             filters.append(filterGroup)
 
@@ -70,7 +70,7 @@ class ConvolutionLayer(Layer):
         self.data = input
         self.inputSize = input[0].shape[0]
         self.z = []
-        outputShape = (self.inputSize - self.filterSize)/self.stride + 1
+        outputShape = int((self.inputSize - self.filterSize)/self.stride + 1)
         for (index,filterGroup) in enumerate(self.filters):
 
             self.z.append(np.zeros((outputShape,outputShape)))
@@ -274,7 +274,7 @@ class FullyConnectedLayer(Layer):
         if bias is not None:
             self.bias = bias
         else :
-            self.bias = np.zeros(size)
+            self.bias = np.random.uniform(size=size)
 
 
         self.size = size
@@ -291,7 +291,7 @@ class FullyConnectedLayer(Layer):
             if path:
                 weightVector = np.load(path + str(i) + '.npy')
             else :
-                weightVector = np.ones((inputSize,1))
+                weightVector = np.random.uniform(size=(inputSize,1))
 
             weights.append(weightVector)
 
@@ -304,7 +304,7 @@ class FullyConnectedLayer(Layer):
         for i in range(self.size):
             self.z[i] = input.dot(self.weights[i]) + self.bias[i]
 
-        return self.activationFunction.activate([self.z])
+        return self.activationFunction.activate([self.z])[0]
 
 
     def propagateBackwards(self, errors, learningRate):
@@ -330,7 +330,7 @@ class FullyConnectedLayer(Layer):
         self.correctWeights(weightErrors, biasErrors, learningRate)
         return previousErrors
 
-    def correctWeights(self, weightErrors, biasErrors):
+    def correctWeights(self, weightErrors, biasErrors, learningRate):
 
             for neuronIndex in range(0, self.size):
                 for i in range(0, self.inputSize):
