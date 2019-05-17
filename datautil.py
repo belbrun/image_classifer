@@ -4,6 +4,14 @@ import os
 
 #def loadImages
 
+def normalize(images):
+    normalizedImages = []
+    for image in images:
+        max = np.max(image)
+        min = np.min(image)
+        normalizedImages.append((image - min)/(max-min))
+    return normalizedImages
+
 def getInput(name, path = 'dataset/2/ALL_IDB2/img/' ):
 
     pixelArray = getImageAsVector(name, path)
@@ -19,7 +27,7 @@ def getInput(name, path = 'dataset/2/ALL_IDB2/img/' ):
             greenArray[i,j] = pixelArray[i,j,1]
             blueArray[i,j] = pixelArray[i,j,2]
 
-    return [redArray, greenArray, blueArray]
+    return normalize([redArray, greenArray, blueArray])
 
 def getImageAsVector(name, path):
     image = Image.open(path + name, 'r')
@@ -47,3 +55,6 @@ def getLayerIds(path):
         with open(path + i + '/config.txt', 'r+') as file:
             layerIds.append(file.read(4))
     return layerIds
+
+if __name__ == '__main__':
+    print(getInput('Im001_1.tif'))
