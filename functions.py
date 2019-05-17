@@ -59,8 +59,8 @@ class LeakyReLU(Function):
         return self.forEachLayer(data,
             lambda x : x * (x > 0) + (.1 * x) * (x < 0))
 
-    def derived(self, data):
-        pass
+    def derived(self, x):
+        return 1 * (x > 0) + 0.1 * (x < 0)
 
     def getName(self):
         return 'lrelu'
@@ -71,8 +71,8 @@ class TanHiperbolic(Function):
         return self.forEachLayer(data,
             lambda x : np.tanh(x))
 
-    def derived(self, data):
-        pass
+    def derived(self, x):
+        return 1 / np.cosh(x)**2
 
     def getName(self):
         return 'tanh'
@@ -89,5 +89,5 @@ def simpleCost(outputValue, correctValue):
 
 
 if __name__ == '__main__':
-    x = LeakyReLU()
-    print(x.activate([2]))
+    x = TanHiperbolic()
+    print(x.derived(2))

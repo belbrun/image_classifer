@@ -41,8 +41,8 @@ def saveData(path, data):
             file.write(str(information)+'|')
 
 def loadData(path):
-        with open(path + 'config.txt', 'r+') as file:
-            return file.read().split('|')
+    with open(path + 'config.txt', 'r+') as file:
+        return file.read().split('|')
 
 def makeDirectory(path):
     os.mkdir(path)
