@@ -37,7 +37,7 @@ class ConvolutionLayer(Layer):
         if bias is not None:
             self.bias = bias
         else:
-            self.bias = np.random.uniform(size=filterNumber)
+            self.bias = np.random.uniform(0.1, 0.5, size=filterNumber)
 
         self.filterNumber = filterNumber
         self.filterSize = filterSize
@@ -57,7 +57,7 @@ class ConvolutionLayer(Layer):
                 if path:
                     filter = np.load(path+str(i)+str(j)+'.npy')
                 else:
-                    filter = np.random.uniform(size=(filterSize,filterSize))
+                    filter = np.random.uniform(0.1, 0.5,size=(filterSize,filterSize))
                 filterGroup.append(filter)
             filters.append(filterGroup)
 
@@ -75,8 +75,8 @@ class ConvolutionLayer(Layer):
 
             self.z.append(np.zeros((outputShape,outputShape)))
 
-            for i in range(0, self.inputSize - self.filterSize):
-                for j in range(0, self.inputSize - self.filterSize):
+            for i in range(0, outputShape):
+                for j in range(0, outputShape):
                     for a in range(0, self.filterSize):
                         for b in range(0, self.filterSize):
                             for (d,x) in enumerate(input):
@@ -94,6 +94,7 @@ class ConvolutionLayer(Layer):
         weightErrors = [[]] * self.filterNumber
         previousErrors = []
         biasErrors = [0]* self.filterNumber
+        outputShape = int((self.inputSize - self.filterSize)/self.stride + 1)
 
         for (d,x) in enumerate(self.data):
 
@@ -103,8 +104,8 @@ class ConvolutionLayer(Layer):
 
                 weightErrors[index].append(np.zeros((self.filterSize,self.filterSize)))
 
-                for i in range(0, self.inputSize - self.filterSize):
-                    for j in range(0, self.inputSize - self.filterSize):
+                for i in range(0, outputShape):
+                    for j in range(0, outputShape):
 
                         outputError = errors[index][i,j] * \
                             self.activationFunction.derived(self.z[index][i,j])
@@ -264,7 +265,7 @@ class FlatteningLayer(Layer):
 class FullyConnectedLayer(Layer):
 
     def __init__(self, size, inputSize, activationFunction,  \
-                    weights = None, bias = None):
+                    weights = None, bias = None, softmax = False):
 
         if weights is not None:
             self.weights = weights
@@ -274,7 +275,7 @@ class FullyConnectedLayer(Layer):
         if bias is not None:
             self.bias = bias
         else :
-            self.bias = np.random.uniform(size=size)
+            self.bias = np.random.uniform(0.1, 0.5,size=size)
 
 
         self.size = size
@@ -282,6 +283,7 @@ class FullyConnectedLayer(Layer):
         self.activationFunction = activationFunction
         self.z = None
         self.data = None
+        self.softmax = softmax
 
     def initializeWeights(size, inputSize, path = None):
 
@@ -291,7 +293,7 @@ class FullyConnectedLayer(Layer):
             if path:
                 weightVector = np.load(path + str(i) + '.npy')
             else :
-                weightVector = np.random.uniform(size=(inputSize,1))
+                weightVector = np.random.uniform(0.1, 0.5,size=(inputSize,1))
 
             weights.append(weightVector)
 
@@ -309,6 +311,7 @@ class FullyConnectedLayer(Layer):
 
     def propagateBackwards(self, errors, learningRate):
 
+        print('FC ERR: ', errors)
         weightErrors = []
         previousErrors = np.zeros(self.inputSize)
         biasErrors = [0] * self.size
@@ -316,8 +319,11 @@ class FullyConnectedLayer(Layer):
         for neuronIndex in range(0, self.size):
 
             weightErrors.append(np.zeros(self.inputSize))
+            gradientArg = (self.z, neuronIndex) if self.softmax else \
+                            self.z[neuronIndex]
             outputError = errors[neuronIndex] * \
-                self.activationFunction.derived(self.z[neuronIndex])
+                self.activationFunction.derived(gradientArg)
+            print('FC outputerr:', outputError, errors[neuronIndex], self.activationFunction.derived(gradientArg) )
             for i in range(self.inputSize):
 
                 weightErrors[neuronIndex][i] += \
@@ -343,7 +349,7 @@ class FullyConnectedLayer(Layer):
 
     def save(self, path):
         datautil.saveData(path, ['FCON', self.size, self.inputSize, \
-            self.activationFunction.getName()])
+            self.activationFunction.getName(), int(self.softmax)])
 
         for (i, weight) in enumerate(self.weights):
             np.save(path + str(i), weight)
@@ -355,10 +361,11 @@ class FullyConnectedLayer(Layer):
         size = int(data[1])
         inputSize = int(data[2])
         activationFunction = getActivationFunction(data[3])
+        softmax = bool(int(data[4]))
         weights = FullyConnectedLayer.initializeWeights(size, inputSize, path)
         bias = np.load(path + 'b.npy')
         return FullyConnectedLayer(size, inputSize, activationFunction, \
-            0.1, weights, bias)
+            0.1, weights, bias, softmax)
 
 layerMap = {'CONV': ConvolutionLayer, 'MAXP': MaxpoolLayer, \
         'FLAT': FlatteningLayer, 'FCON': FullyConnectedLayer}

@@ -31,6 +31,7 @@ def getInput(name, path = 'dataset/2/ALL_IDB2/img/' ):
 
 def getImageAsVector(name, path):
     image = Image.open(path + name, 'r')
+    image = image.resize((100,100), Image.ANTIALIAS)
     pixelArray = np.asarray(image)
     return pixelArray
 

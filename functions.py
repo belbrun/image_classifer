@@ -28,7 +28,6 @@ class Identity(Function):
 class Sigmoid(Function):
 
     def activate(self, data):
-        print('Sig data:', data)
         return self.forEachLayer(data,
             lambda x : 1. / (1. + np.exp(-x)))
 
@@ -60,6 +59,7 @@ class LeakyReLU(Function):
             lambda x : x * (x > 0) + (.1 * x) * (x < 0))
 
     def derived(self, x):
+
         return 1 * (x > 0) + 0.1 * (x < 0)
 
     def getName(self):
@@ -72,22 +72,47 @@ class TanHiperbolic(Function):
             lambda x : np.tanh(x))
 
     def derived(self, x):
+        print('TANH DER: ', x)
         return 1 / np.cosh(x)**2
 
     def getName(self):
         return 'tanh'
 
+
+class SoftMax(Function):
+
+    def activate(self, data):
+        classValues = np.exp(data)
+        return classValues/np.sum(classValues)
+
+    def derived(self, x):
+        values, index = x
+        softmax = self.activate(values)
+        result = 0
+        for i in range(0, len(values)):
+            result += softmax[i]*(1-softmax[i]) if i == index else \
+                        -softmax[i]*softmax[index]
+        return result
+
+    def getName(self):
+        return 'smax'
+
 functions = {'sig':Sigmoid(), 'relu':ReLU(), 'lrelu': LeakyReLU(), \
-'tanh': TanHiperbolic}
+'tanh': TanHiperbolic(), 'smax': SoftMax()}
 
 
 
 def simpleCost(outputValue, correctValue):
     print('O: ', outputValue, ' C: ', correctValue)
+    print('Err: ', correctValue - outputValue)
     return abs(correctValue - outputValue)
 
+def crossEntropyLoss(outputValue, correctValue):
+    print('O: ', outputValue, ' C: ', correctValue)
 
+    return -(correctValue*np.log(outputValue) + \
+            (1-correctValue)*np.log(1-outputValue))
 
 if __name__ == '__main__':
-    x = TanHiperbolic()
-    print(x.derived(2))
+    x = LeakyReLU()
+    print(x.derived(1))

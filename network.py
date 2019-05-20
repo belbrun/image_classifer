@@ -63,6 +63,7 @@ class NeuralNetwork():
     def learn(self, errors, learningRate):
 
         for layer in self.layers[::-1]:
+            print(layer, errors)
             errors = layer.propagateBackwards(errors, learningRate)
 
 
