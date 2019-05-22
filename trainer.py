@@ -13,31 +13,42 @@ validationSetFactor = 0.2
 testSetFactor = 0.2
 
 epochs = 10
-learningRate = 0.2
+learningRate = 0.05
 drop = 0.1
 
 
 #blastomResults = np.array([1, 0])
 #othersResults = np.array([0,1])
-blastomResults = np.array([1])
-othersResults = np.array([0])
+blastomResults = np.array([30000])
+othersResults = np.array([15000])
 
 datasetPath = 'dataset/2/ALL_IDB2/img/'
 
 def initializeNN():
     neuralNet = NeuralNetwork()
-    neuralNet.addLayer(ConvolutionLayer(3,5,1,TanHiperbolic(),3))
+    neuralNet.addLayer(ConvolutionLayer(3,5,1,Sigmoid(),3))
     neuralNet.addLayer(MaxpoolLayer(5))
-    neuralNet.addLayer(ConvolutionLayer(2,4,1,TanHiperbolic(),3))
+    neuralNet.addLayer(ConvolutionLayer(2,4,1,LeakyReLU(),3))
     neuralNet.addLayer(MaxpoolLayer(3))
-    neuralNet.addLayer(ConvolutionLayer(3,3,1,TanHiperbolic(),2))
+    neuralNet.addLayer(ConvolutionLayer(3,3,1,LeakyReLU(),2))
     neuralNet.addLayer(MaxpoolLayer(2))
     neuralNet.addLayer(FlatteningLayer())
-    neuralNet.addLayer(FullyConnectedLayer(200, 21168, TanHiperbolic()))
+    neuralNet.addLayer(FullyConnectedLayer(200, 98283, TanHiperbolic()))
     neuralNet.addLayer(FullyConnectedLayer(50, 200, LeakyReLU()))
-    neuralNet.addLayer(FullyConnectedLayer(10, 50, TanHiperbolic()))
+    neuralNet.addLayer(FullyConnectedLayer(10, 50, ReLU()))
     neuralNet.addLayer(FullyConnectedLayer(3, 10, LeakyReLU()))
-    neuralNet.addLayer(FullyConnectedLayer(1, 3, Sigmoid(), softmax = False))
+    neuralNet.addLayer(FullyConnectedLayer(1, 3, LeakyReLU(), softmax = False))
+    return neuralNet
+
+def initializeFC():
+    neuralNet = NeuralNetwork(crossEntropyLoss)
+    neuralNet.addLayer(FlatteningLayer())
+    neuralNet.addLayer(FullyConnectedLayer(38809, 116427, Sigmoid()))
+    neuralNet.addLayer(FullyConnectedLayer(200, 38809, Sigmoid()))
+    neuralNet.addLayer(FullyConnectedLayer(50, 200, LeakyReLU()))
+    neuralNet.addLayer(FullyConnectedLayer(10, 50, ReLU()))
+    neuralNet.addLayer(FullyConnectedLayer(3, 10, LeakyReLU()))
+    neuralNet.addLayer(FullyConnectedLayer(2, 3, LeakyReLU(), softmax = False))
     return neuralNet
 
 def fillIndex(index):
@@ -51,7 +62,9 @@ def fillIndex(index):
 def getEntity(index, isBlastom):
     name = fillIndex(index) + '_1.tif' if isBlastom  else \
     fillIndex(index) + '_0.tif'
-    return datautil.getInput(name)
+    entity = datautil.getInput(name)
+    #print('ENTITIY: ', entity)
+    return entity
 
 
 def trainOnEntity(neuralNet, index, isBlastom):
@@ -72,7 +85,7 @@ def train(neuralNet):
 
         avgError = 0
         for index in range(1, trainingSetSize):
-            error = trainOnEntity(neuralNet, index, False)
+            error = trainOnEntity(neuralNet, index, True)
             avgError += error
             print('TRAINING -- Epoch: ', i, ' Example: ', index, ' Error: ', error)
             error = trainOnEntity(neuralNet, index, False)

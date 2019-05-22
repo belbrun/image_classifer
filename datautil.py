@@ -7,9 +7,13 @@ import os
 def normalize(images):
     normalizedImages = []
     for image in images:
+        #print('Image: ', image)
         max = np.max(image)
         min = np.min(image)
+        #print('MAXMIN: ', max, min)
+
         normalizedImages.append((image - min)/(max-min))
+        #print('NORML', normalizedImages)
     return normalizedImages
 
 def getInput(name, path = 'dataset/2/ALL_IDB2/img/' ):
@@ -31,8 +35,10 @@ def getInput(name, path = 'dataset/2/ALL_IDB2/img/' ):
 
 def getImageAsVector(name, path):
     image = Image.open(path + name, 'r')
-    image = image.resize((100,100), Image.ANTIALIAS)
-    pixelArray = np.asarray(image)
+    image = image.crop((30,30,227,227))
+    #image = image.resize((20,180), Image.BILINEAR)
+    image.show()
+    pixelArray = np.array(image)
     return pixelArray
 
 
@@ -58,4 +64,5 @@ def getLayerIds(path):
     return layerIds
 
 if __name__ == '__main__':
-    print(getInput('Im001_1.tif'))
+    print(len(getInput('Im001_1.tif')))
+    print(len(getInput('Im131_0.tif')))

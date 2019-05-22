@@ -55,6 +55,7 @@ class ReLU(Function):
 class LeakyReLU(Function):
 
     def activate(self, data):
+        #print('DATA: ', data)
         return self.forEachLayer(data,
             lambda x : x * (x > 0) + (.1 * x) * (x < 0))
 
@@ -72,7 +73,7 @@ class TanHiperbolic(Function):
             lambda x : np.tanh(x))
 
     def derived(self, x):
-        print('TANH DER: ', x)
+        #print('TANH DER: ', x)
         return 1 / np.cosh(x)**2
 
     def getName(self):
@@ -97,15 +98,27 @@ class SoftMax(Function):
     def getName(self):
         return 'smax'
 
+class RatioFunction(Function):
+
+    def activate(self, data):
+        return data/np.sum(data)
+
+    def derived(self, x):
+        values, index = x
+        return values[index] / (np.sum(values)**2)
+
+    def getName(self):
+        return 'ratio'
+
 functions = {'sig':Sigmoid(), 'relu':ReLU(), 'lrelu': LeakyReLU(), \
-'tanh': TanHiperbolic(), 'smax': SoftMax()}
+'tanh': TanHiperbolic(), 'smax': SoftMax(), 'ratio': RatioFunction()}
 
 
 
 def simpleCost(outputValue, correctValue):
     print('O: ', outputValue, ' C: ', correctValue)
-    print('Err: ', correctValue - outputValue)
-    return abs(correctValue - outputValue)
+    #print('Err: ', correctValue - outputValue)
+    return (correctValue - outputValue)/correctValue
 
 def crossEntropyLoss(outputValue, correctValue):
     print('O: ', outputValue, ' C: ', correctValue)

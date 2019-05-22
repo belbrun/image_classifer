@@ -11,11 +11,15 @@ import numpy as np
 
 def main():
     #rgbMatrices =getInput('Im126_1.tif')
-    NeuralNetwork.load('network_data/')
-    return
+
     testData = []
     testData.append(np.resize(np.arange(9),(3,3)))
     testData.append(np.resize(np.arange(9,18),(3,3)))
+    testData.append(np.ones((3,3)))
+    print(testData)
+    print(MaxpoolLayer(2).propagateForward(testData))
+    return
+
 
     neuralNet = NeuralNetwork()
     neuralNet.addLayer(ConvolutionLayer(3,3,1,ReLU(),0.1,3))

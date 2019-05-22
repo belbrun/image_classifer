@@ -37,7 +37,7 @@ class ConvolutionLayer(Layer):
         if bias is not None:
             self.bias = bias
         else:
-            self.bias = np.random.uniform(0.1, 0.5, size=filterNumber)
+            self.bias = np.random.uniform(0.1, 1.0, size=filterNumber)
 
         self.filterNumber = filterNumber
         self.filterSize = filterSize
@@ -57,7 +57,7 @@ class ConvolutionLayer(Layer):
                 if path:
                     filter = np.load(path+str(i)+str(j)+'.npy')
                 else:
-                    filter = np.random.uniform(0.1, 0.5,size=(filterSize,filterSize))
+                    filter = np.random.uniform(0.1, 1.0,size=(filterSize,filterSize))
                 filterGroup.append(filter)
             filters.append(filterGroup)
 
@@ -81,8 +81,19 @@ class ConvolutionLayer(Layer):
                         for b in range(0, self.filterSize):
                             for (d,x) in enumerate(input):
 
-                                self.z[index][i,j] += filterGroup[d][a,b] * \
-                                    x[i*self.stride + a, j*self.stride + b]
+
+                                try:
+                                    self.z[index][i,j] += filterGroup[d][a,b] * \
+                                        x[i*self.stride + a, j*self.stride + b]
+                                except Exception as e:
+                                    print('input: ', input)
+                                    print(len(self.z), index)
+                                    print(self.z[index].shape, i, j)
+                                    print(len(filterGroup), d)
+                                    print(filterGroup[d].shape, a, b)
+                                    print(x.shape, i*self.stride + a, j*self.stride + b)
+                                    raise e
+
 
                     self.z[index][i,j] += self.bias[index]
 
@@ -162,8 +173,6 @@ class MaxpoolLayer(Layer):
 
     def __init__(self, clusterSize = 2):
         self.clusterSize = clusterSize
-        self.maxPositions = []
-        self.z = []
         self.dataLength = 0
 
 
@@ -172,6 +181,9 @@ class MaxpoolLayer(Layer):
         self.dataLength = len(input)
         self.inputSize = input[0].shape[0]
         outputShape = self.inputSize - self.clusterSize + 1
+        self.z = []
+        self.maxPositions = []
+
 
         for (d, data) in enumerate(input):
 
@@ -181,8 +193,8 @@ class MaxpoolLayer(Layer):
             for i in range(0, self.inputSize - self.clusterSize + 1 ):
                 for j in range(0, self.inputSize - self.clusterSize + 1):
 
-                    max = 0
-                    maxPosition = None
+                    max = data[i,j]
+                    maxPosition = (i,j)
 
                     for k in range(0, self.clusterSize):
                         for l in range(0, self.clusterSize):
@@ -275,14 +287,12 @@ class FullyConnectedLayer(Layer):
         if bias is not None:
             self.bias = bias
         else :
-            self.bias = np.random.uniform(0.1, 0.5,size=size)
+            self.bias = np.random.uniform(0.1, 1.0,size=size)
 
 
         self.size = size
         self.inputSize = inputSize
         self.activationFunction = activationFunction
-        self.z = None
-        self.data = None
         self.softmax = softmax
 
     def initializeWeights(size, inputSize, path = None):
@@ -293,7 +303,7 @@ class FullyConnectedLayer(Layer):
             if path:
                 weightVector = np.load(path + str(i) + '.npy')
             else :
-                weightVector = np.random.uniform(0.1, 0.5,size=(inputSize,1))
+                weightVector = np.random.uniform(0.1, 1.0,size=(inputSize,1))
 
             weights.append(weightVector)
 
@@ -311,7 +321,7 @@ class FullyConnectedLayer(Layer):
 
     def propagateBackwards(self, errors, learningRate):
 
-        print('FC ERR: ', errors)
+        #print('FC ERR: ', errors)
         weightErrors = []
         previousErrors = np.zeros(self.inputSize)
         biasErrors = [0] * self.size
@@ -323,7 +333,7 @@ class FullyConnectedLayer(Layer):
                             self.z[neuronIndex]
             outputError = errors[neuronIndex] * \
                 self.activationFunction.derived(gradientArg)
-            print('FC outputerr:', outputError, errors[neuronIndex], self.activationFunction.derived(gradientArg) )
+            #print('FC outputerr:', outputError, errors[neuronIndex], self.activationFunction.derived(gradientArg) )
             for i in range(self.inputSize):
 
                 weightErrors[neuronIndex][i] += \
@@ -366,6 +376,10 @@ class FullyConnectedLayer(Layer):
         bias = np.load(path + 'b.npy')
         return FullyConnectedLayer(size, inputSize, activationFunction, \
             0.1, weights, bias, softmax)
+
+    def __str__(self):
+        return 'Fully Connected Layer\n size: ' + str(self.size) +'\n activation:' + \
+                self.activationFunction.getName()
 
 layerMap = {'CONV': ConvolutionLayer, 'MAXP': MaxpoolLayer, \
         'FLAT': FlatteningLayer, 'FCON': FullyConnectedLayer}

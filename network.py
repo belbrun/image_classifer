@@ -23,6 +23,7 @@ class NeuralNetwork():
 
         for layer in self.layers:
             x = layer.propagateForward(x)
+            #print(layer, x)
 
         return x
 
@@ -46,8 +47,8 @@ class NeuralNetwork():
     def calculateError(self, output, result):
 
         errors = []
-        for i in range(0, len(result)):
-            errors.append(self.errorFunction(output, result))
+        for i in range(0, result.shape[0]):
+            errors.append(self.errorFunction(output[i], result[i]))
 
         return np.array(errors)
 
@@ -63,13 +64,14 @@ class NeuralNetwork():
     def learn(self, errors, learningRate):
 
         for layer in self.layers[::-1]:
-            print(layer, errors)
+            print('----------------')
+            print(layer, '\n', errors)
             errors = layer.propagateBackwards(errors, learningRate)
 
 
     def train(self, x, results, learningRate):
         output = self.output(x)
-        errors = self.errorFunction(output, results)
+        errors = self.calculateError(output, results)
         self.learn(errors, learningRate)
         return errors
 
