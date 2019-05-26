@@ -73,7 +73,7 @@ class TanHiperbolic(Function):
             lambda x : np.tanh(x))
 
     def derived(self, x):
-        #print('TANH DER: ', x)
+        #print('TANH DER: ', x, 1/np.cosh(x)**2)
         return 1 / np.cosh(x)**2
 
     def getName(self):
@@ -101,7 +101,8 @@ class SoftMax(Function):
 class RatioFunction(Function):
 
     def activate(self, data):
-        return data/np.sum(data)
+        data = abs(data[0])
+        return [data/np.sum(data)]
 
     def derived(self, x):
         values, index = x
@@ -123,9 +124,9 @@ def simpleCost(outputValue, correctValue):
 def crossEntropyLoss(outputValue, correctValue):
     print('O: ', outputValue, ' C: ', correctValue)
 
-    return -(correctValue*np.log(outputValue) + \
+    return -(-correctValue*np.log(outputValue) + \
             (1-correctValue)*np.log(1-outputValue))
 
 if __name__ == '__main__':
-    x = LeakyReLU()
-    print(x.derived(1))
+    x = RatioFunction()
+    print(x.activate(np.array([-1,23])))

@@ -37,7 +37,7 @@ def getImageAsVector(name, path):
     image = Image.open(path + name, 'r')
     image = image.crop((30,30,227,227))
     #image = image.resize((20,180), Image.BILINEAR)
-    image.show()
+    #image.show()
     pixelArray = np.array(image)
     return pixelArray
 
@@ -54,12 +54,16 @@ def loadData(path):
 def makeDirectory(path):
     os.mkdir(path)
 
+def writeLog(path, log):
+    with open(path + 'log.txt', 'w+') as file:
+        for line in log:
+            file.write(line + '\n')
+
 def getLayerIds(path):
     layerIds = []
     dirList = os.listdir(path)
-    dirList.sort()
-    for i in dirList:
-        with open(path + i + '/config.txt', 'r+') as file:
+    for i in range(0, len(dirList) - 1):
+        with open(path + str(i) + '/config.txt', 'r+') as file:
             layerIds.append(file.read(4))
     return layerIds
 

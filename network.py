@@ -41,8 +41,7 @@ class NeuralNetwork():
         return outputs
 
     def feedForError(self, x, result):
-        return self.calculateError(self.output(x), results)
-
+        return self.calculateError(self.output(x), result)
 
     def calculateError(self, output, result):
 
@@ -63,10 +62,11 @@ class NeuralNetwork():
 
     def learn(self, errors, learningRate):
 
-        for layer in self.layers[::-1]:
-            print('----------------')
-            print(layer, '\n', errors)
-            errors = layer.propagateBackwards(errors, learningRate)
+        for index,layer in enumerate(self.layers[::-1]):
+            #print('----------------')
+            #print(layer, '\n', errors)
+            errors = layer.propagateBackwards(errors, 2**(index))
+            learningRate *= 2
 
 
     def train(self, x, results, learningRate):
@@ -82,7 +82,8 @@ class NeuralNetwork():
             layer.save(newPath)
 
     def load(path):
-        network = NeuralNetwork()
+        network = NeuralNetwork(crossEntropyLoss)
         for (index, id) in enumerate(datautil.getLayerIds(path)):
             network.addLayer(\
                 getLayerById(id).load(path + str(index) + '/'))
+        return network

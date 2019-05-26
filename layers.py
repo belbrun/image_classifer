@@ -2,13 +2,14 @@ import numpy as np
 import datautil
 from functions import getActivationFunction
 
-
+minWeight = -1
+maxWeight = 1
 
 class Layer:
 
-    def __init__(self, weights, activationFunction):
-        self.weights = weights
+    def __init__(self, activationFunction):
         self.activationFunction = activationFunction
+
 
     def propagateForward(self, input):
         pass
@@ -37,7 +38,7 @@ class ConvolutionLayer(Layer):
         if bias is not None:
             self.bias = bias
         else:
-            self.bias = np.random.uniform(0.1, 1.0, size=filterNumber)
+            self.bias = np.random.uniform(minWeight, maxWeight, size=filterNumber)
 
         self.filterNumber = filterNumber
         self.filterSize = filterSize
@@ -57,7 +58,7 @@ class ConvolutionLayer(Layer):
                 if path:
                     filter = np.load(path+str(i)+str(j)+'.npy')
                 else:
-                    filter = np.random.uniform(0.1, 1.0,size=(filterSize,filterSize))
+                    filter = np.random.uniform(minWeight, maxWeight,size=(filterSize,filterSize))
                 filterGroup.append(filter)
             filters.append(filterGroup)
 
@@ -137,15 +138,15 @@ class ConvolutionLayer(Layer):
 
     def correctWeights(self, weightErrors, biasErrors, learningRate):
 
+        #print('Errors: ', weightErrors)
         for (index, filterGroup) in enumerate(self.filters):
             for (d, filter) in enumerate(filterGroup):
                 for a in range(0, self.filterSize):
                     for b in range(0, self.filterSize):
-
-                        filter[a,b] += \
+                        filter[a,b] -= \
                             learningRate * weightErrors[index][d][a,b]
 
-            self.bias[index] += learningRate * biasErrors[index]
+            self.bias[index] -= learningRate * biasErrors[index]
 
     def save(self, path):
         datautil.saveData(path, ['CONV', self.filterNumber, self.filterSize,\
@@ -166,7 +167,7 @@ class ConvolutionLayer(Layer):
             .initializeFilters(filterNumber, inputDepth, filterSize, path)
         bias = np.load(path +'b.npy')
         return ConvolutionLayer(filterNumber, filterSize, stride, activationFunction,\
-            0.1, inputDepth, filters, bias)
+             inputDepth, filters, bias)
 
 
 class MaxpoolLayer(Layer):
@@ -287,7 +288,7 @@ class FullyConnectedLayer(Layer):
         if bias is not None:
             self.bias = bias
         else :
-            self.bias = np.random.uniform(0.1, 1.0,size=size)
+            self.bias = np.random.uniform(minWeight, maxWeight,size=size)
 
 
         self.size = size
@@ -303,7 +304,7 @@ class FullyConnectedLayer(Layer):
             if path:
                 weightVector = np.load(path + str(i) + '.npy')
             else :
-                weightVector = np.random.uniform(0.1, 1.0,size=(inputSize,1))
+                weightVector = np.random.uniform(minWeight, maxWeight,size=(inputSize,1))
 
             weights.append(weightVector)
 
@@ -321,7 +322,6 @@ class FullyConnectedLayer(Layer):
 
     def propagateBackwards(self, errors, learningRate):
 
-        #print('FC ERR: ', errors)
         weightErrors = []
         previousErrors = np.zeros(self.inputSize)
         biasErrors = [0] * self.size
@@ -333,7 +333,6 @@ class FullyConnectedLayer(Layer):
                             self.z[neuronIndex]
             outputError = errors[neuronIndex] * \
                 self.activationFunction.derived(gradientArg)
-            #print('FC outputerr:', outputError, errors[neuronIndex], self.activationFunction.derived(gradientArg) )
             for i in range(self.inputSize):
 
                 weightErrors[neuronIndex][i] += \
@@ -348,13 +347,14 @@ class FullyConnectedLayer(Layer):
 
     def correctWeights(self, weightErrors, biasErrors, learningRate):
 
+            #print('Errors: ',weightErrors)
             for neuronIndex in range(0, self.size):
+
                 for i in range(0, self.inputSize):
 
-                    self.weights[neuronIndex][i] += \
+                    self.weights[neuronIndex][i] -= \
                         learningRate * weightErrors[neuronIndex][i]
-
-                self.bias[neuronIndex] += \
+                self.bias[neuronIndex] -= \
                     learningRate * biasErrors[neuronIndex]
 
     def save(self, path):
@@ -375,7 +375,7 @@ class FullyConnectedLayer(Layer):
         weights = FullyConnectedLayer.initializeWeights(size, inputSize, path)
         bias = np.load(path + 'b.npy')
         return FullyConnectedLayer(size, inputSize, activationFunction, \
-            0.1, weights, bias, softmax)
+            weights, bias, softmax)
 
     def __str__(self):
         return 'Fully Connected Layer\n size: ' + str(self.size) +'\n activation:' + \
