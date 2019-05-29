@@ -26,7 +26,6 @@ def getInput(name, path = 'dataset/2/ALL_IDB2/img/' ):
 
     for i in range(0, columns-1):
         for j in range(0, rows-1):
-
             redArray[i,j] = pixelArray[i,j,0]
             greenArray[i,j] = pixelArray[i,j,1]
             blueArray[i,j] = pixelArray[i,j,2]
@@ -66,6 +65,17 @@ def getLayerIds(path):
         with open(path + str(i) + '/config.txt', 'r+') as file:
             layerIds.append(file.read(4))
     return layerIds
+
+def getImageFromArrays(arrays):
+    redArray,greenArray,blueArray = arrays[0]*255,arrays[1]*255,arrays[2]*255
+    rgbArray = np.empty((redArray.shape[0], redArray.shape[1], 3))
+    for i in range(0, redArray.shape[0]):
+        for j in range(0, redArray.shape[1]):
+            rgbArray[i,j] = np.array([redArray[i,j], greenArray[i,j], blueArray[i,j]])
+    image = Image.fromarray(rgbArray.astype('uint8'), 'RGB')
+    image.show()
+
+
 
 if __name__ == '__main__':
     print(len(getInput('Im001_1.tif')))

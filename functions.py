@@ -124,7 +124,7 @@ def simpleCost(outputValue, correctValue):
 def crossEntropyLoss(outputValue, correctValue):
     print('O: ', outputValue, ' C: ', correctValue)
 
-    return -(-correctValue*np.log(outputValue) + \
+    return -(correctValue*np.log(outputValue) - \
             (1-correctValue)*np.log(1-outputValue))
 
 if __name__ == '__main__':

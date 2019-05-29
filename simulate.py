@@ -11,7 +11,9 @@ import numpy as np
 
 def main():
     #rgbMatrices =getInput('Im126_1.tif')
-
+    net = NeuralNetwork.load('network_data/old_network')
+    datautil.getImageFromArrays(net.layers[0].propagateForward(datautil.getInput('Im001_1.tif')))
+    return
     testData = []
     testData.append(np.resize(np.arange(9),(3,3)))
     testData.append(np.resize(np.arange(9,18),(3,3)))

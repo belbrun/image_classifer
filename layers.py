@@ -2,8 +2,8 @@ import numpy as np
 import datautil
 from functions import getActivationFunction
 
-minWeight = -1
-maxWeight = 1
+minWeight = -0.33
+maxWeight = 0.33
 
 class Layer:
 
@@ -82,19 +82,8 @@ class ConvolutionLayer(Layer):
                         for b in range(0, self.filterSize):
                             for (d,x) in enumerate(input):
 
-
-                                try:
-                                    self.z[index][i,j] += filterGroup[d][a,b] * \
+                                self.z[index][i,j] += filterGroup[d][a,b] * \
                                         x[i*self.stride + a, j*self.stride + b]
-                                except Exception as e:
-                                    print('input: ', input)
-                                    print(len(self.z), index)
-                                    print(self.z[index].shape, i, j)
-                                    print(len(filterGroup), d)
-                                    print(filterGroup[d].shape, a, b)
-                                    print(x.shape, i*self.stride + a, j*self.stride + b)
-                                    raise e
-
 
                     self.z[index][i,j] += self.bias[index]
 
@@ -138,15 +127,15 @@ class ConvolutionLayer(Layer):
 
     def correctWeights(self, weightErrors, biasErrors, learningRate):
 
-        #print('Errors: ', weightErrors)
+        #print('Errors: ', weightErrors * int(learningRate))
         for (index, filterGroup) in enumerate(self.filters):
             for (d, filter) in enumerate(filterGroup):
                 for a in range(0, self.filterSize):
                     for b in range(0, self.filterSize):
-                        filter[a,b] -= \
+                        filter[a,b] += \
                             learningRate * weightErrors[index][d][a,b]
 
-            self.bias[index] -= learningRate * biasErrors[index]
+            self.bias[index] += learningRate * biasErrors[index]
 
     def save(self, path):
         datautil.saveData(path, ['CONV', self.filterNumber, self.filterSize,\
@@ -347,14 +336,14 @@ class FullyConnectedLayer(Layer):
 
     def correctWeights(self, weightErrors, biasErrors, learningRate):
 
-            #print('Errors: ',weightErrors)
+            #print('Errors: ', weightErrors * int(learningRate))
             for neuronIndex in range(0, self.size):
 
                 for i in range(0, self.inputSize):
 
-                    self.weights[neuronIndex][i] -= \
+                    self.weights[neuronIndex][i] += \
                         learningRate * weightErrors[neuronIndex][i]
-                self.bias[neuronIndex] -= \
+                self.bias[neuronIndex] += \
                     learningRate * biasErrors[neuronIndex]
 
     def save(self, path):

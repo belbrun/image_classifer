@@ -41,7 +41,9 @@ class NeuralNetwork():
         return outputs
 
     def feedForError(self, x, result):
-        return self.calculateError(self.output(x), result)
+        output = self.output(x)
+        error = self.calculateError(output, result)
+        return (output, error)
 
     def calculateError(self, output, result):
 
@@ -65,8 +67,8 @@ class NeuralNetwork():
         for index,layer in enumerate(self.layers[::-1]):
             #print('----------------')
             #print(layer, '\n', errors)
-            errors = layer.propagateBackwards(errors, 2**(index))
-            learningRate *= 2
+            errors = layer.propagateBackwards(errors, 2**(index-3))
+            #learningRate *= 2
 
 
     def train(self, x, results, learningRate):
@@ -87,3 +89,13 @@ class NeuralNetwork():
             network.addLayer(\
                 getLayerById(id).load(path + str(index) + '/'))
         return network
+
+    def printNetwork(self):
+        for layer in self.layers:
+            print(layer)
+            if isinstance(layer, ConvolutionLayer):
+                print(layer.filters)
+                print(layer.bias)
+            if isinstance(layer, FullyConnectedLayer):
+                print(layer.weights)
+                print(layer.bias)

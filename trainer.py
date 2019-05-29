@@ -10,7 +10,7 @@ datasetSize = 260
 
 trainingSetFactor = 0.5
 validationSetFactor = 0.1
-testSetFactor = 0.2
+testSetFactor = 0.3
 
 epochs = 1
 learningRate = 0.15
@@ -72,7 +72,7 @@ def testEntity(neuralNet, index, isBlastom):
     index += 0 if isBlastom else blastomCount
     return neuralNet.output(getEntity(index, isBlastom))
 
-def formatMessage(action, epoch, error, index = 0, isBlastom = True, isAvarage = False):
+def formatMessage(action, epoch, error, index = 0, isBlastom = True, output = None, isAvarage = False):
     message = ''
     message += action + '-- Epoch:' + str(epoch)
     message += ' Example: ' + str(index) if not isAvarage else \
@@ -80,6 +80,8 @@ def formatMessage(action, epoch, error, index = 0, isBlastom = True, isAvarage =
     if not isAvarage:
         message += '_1 Error: ' + str(error) if isBlastom else \
                 '_0 Error: ' + str(error)
+    if output:
+        message += ' Output: ' + str(output[0])
     return message
 
 def train(neuralNet):
@@ -89,7 +91,7 @@ def train(neuralNet):
     for i in range(1, epochs + 1):
 
         avgError = 0
-        for index in range(1, trainingSetSize + 1):
+        for index in range(1, trainingSetSize):
             error = trainOnEntity(neuralNet, index, True)
             avgError += abs(error)
             trainingLog.append(formatMessage('TRAINING', i, error, index))
@@ -100,39 +102,47 @@ def train(neuralNet):
             avgError += abs(error)
 
         trainingLog.append(formatMessage('TRAINING', i, \
-             avgError/(trainingSetSize), isAvarage = True))
+             avgError/(trainingSetSize*2), isAvarage = True))
         print(trainingLog[-1])
 
         avgError = 0
         for index in range(trainingSetSize, trainingSetSize + validationSetSize):
-            error = feedEntity(neuralNet, index, True)
+            output, error = feedEntity(neuralNet, index, True)
             avgError += abs(error)
-            trainingLog.append(formatMessage('VALIDATION', i, error, index))
+            trainingLog.append(formatMessage('VALIDATION', i, error, index, True, output))
             print(trainingLog[-1])
-            error = feedEntity(neuralNet, index, False)
-            trainingLog.append(formatMessage('VALIDATION', i, error, index, False))
+            output, error = feedEntity(neuralNet, index, False)
+            trainingLog.append(formatMessage('VALIDATION', i, error, index, False, output))
             print(trainingLog[-1])
             avgError += abs(error)
 
         trainingLog.append(formatMessage('VALIDATION', i, \
-             avgError/(trainingSetSize), isAvarage = True))
+             avgError/(validationSetSize*2), isAvarage = True))
         print(trainingLog[-1])
         #learningRate *= drop
     return trainingLog
 
 def isCorrect(value, isBlastom):
+
     #limit = 0.493338599275 new network 68%
-    limit = 0.49172294
+    #limit = 0.48971075
+    #limit = 0.4961616
+    #limit = 0.4976952 #epoch3
+    limit = 0.498102467
+
     print(value, limit)
     if value == limit: return None
-    correct = value < limit if isBlastom else value > limit
+    correct = value > limit if isBlastom else value < limit
     return correct
 
 
 def test(neuralNet):
     counts = [0,0,0,0] #correct, false positives, false negatives, inconclusive
     avgValue = 0
-    for index in range(100,130):
+    startIndex = 90
+    endIndex = 130
+
+    for index in range(startIndex, endIndex):
         output = testEntity(neuralNet, index, True)
         avgValue += output[0]
         correct = isCorrect(output[0], True)
@@ -154,25 +164,28 @@ def test(neuralNet):
         else:
             counts[3] += 1
         print('TEST----Example: ', index, '_0 Output: ', output, ' Overall: ', counts)
-    print(avgValue/60)
+    print(avgValue/(2*(endIndex-startIndex)))
 
 def testingProcedure():
-    neuralNet = NeuralNetwork.load('network_data/old_network/')
+    neuralNet = NeuralNetwork.load('network_data/network_first_try/epoch4/')
     test(neuralNet)
 
 def trainingProcedure(new = True):
     if new :
         neuralNet = initializeNN()
     else :
-        neuralNet = NeuralNetwork.load('network_data/old_network/')
+        neuralNet = NeuralNetwork.load('network_data/network_first_try/epoch3/')
     log = train(neuralNet)
-    neuralNet.save('network_data/new_network/')
-    datautil.writeLog('network_data/new_network/', log)
+    neuralNet.save('network_data/network_first_try/epoch4/')
+    datautil.writeLog('network_data/network_first_try/epoch4/', log)
 
+def printNetwork(path):
+    NeuralNetwork.load(path).printNetwork()
 
 def main():
-    #testingProcedure()
-    trainingProcedure(False)
+    testingProcedure()
+    #trainingProcedure(False)
+    #printNetwork('network_data/new_network/')
 
 if __name__ == '__main__':
     main()
