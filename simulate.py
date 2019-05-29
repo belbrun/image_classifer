@@ -19,13 +19,13 @@ def main():
     testData.append(np.resize(np.arange(9,18),(3,3)))
     testData.append(np.ones((3,3)))
     print(testData)
-    print(MaxpoolLayer(2).propagateForward(testData))
+    print(ExtremumPoolLayer(2).propagateForward(testData))
     return
 
 
     neuralNet = NeuralNetwork()
     neuralNet.addLayer(ConvolutionLayer(3,3,1,ReLU(),0.1,3))
-    neuralNet.addLayer(MaxpoolLayer(3))
+    neuralNet.addLayer(ExtremumPoolLayer(3))
     neuralNet.addLayer(FlatteningLayer())
     neuralNet.addLayer(FullyConnectedLayer(3, 193548, TanHiperbolic(),0.1))
     neuralNet.save('network_data/')

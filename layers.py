@@ -159,12 +159,14 @@ class ConvolutionLayer(Layer):
              inputDepth, filters, bias)
 
 
-class MaxpoolLayer(Layer):
+class ExtremumPoolLayer(Layer):
 
-    def __init__(self, clusterSize = 2):
+    comparationFunctions = { 'max': lambda x,y: x > y, 'min': lambda x,y: x < y}
+
+    def __init__(self, clusterSize = 2, type = 'max'):
         self.clusterSize = clusterSize
         self.dataLength = 0
-
+        self.comparationFunction = ExtremumPoolLayer.comparationFunctions[type]
 
     def propagateForward(self, input):
 
@@ -172,29 +174,29 @@ class MaxpoolLayer(Layer):
         self.inputSize = input[0].shape[0]
         outputShape = self.inputSize - self.clusterSize + 1
         self.z = []
-        self.maxPositions = []
+        self.extPositions = []
 
 
         for (d, data) in enumerate(input):
 
             self.z.append(np.empty((outputShape,outputShape)))
-            self.maxPositions.append([])
+            self.extPositions.append([])
 
             for i in range(0, self.inputSize - self.clusterSize + 1 ):
                 for j in range(0, self.inputSize - self.clusterSize + 1):
 
-                    max = data[i,j]
-                    maxPosition = (i,j)
+                    ext = data[i,j]
+                    extPosition = (i,j)
 
                     for k in range(0, self.clusterSize):
                         for l in range(0, self.clusterSize):
 
-                            if(data[i+k, j+l] > max):
-                                max = data[i+k, j+l]
-                                maxPosition = (i+k, j+l)
+                            if(self.comparationFunction(data[i+k, j+l], ext)):
+                                ext = data[i+k, j+l]
+                                extPosition = (i+k, j+l)
 
-                    self.maxPositions[d].append(maxPosition)
-                    self.z[d][i, j] = max
+                    self.extPositions[d].append(extPosition)
+                    self.z[d][i, j] = ext
 
         return self.z
 
@@ -211,7 +213,7 @@ class MaxpoolLayer(Layer):
             for i in range(0, outputShape):
                 for j in range(0, outputShape):
 
-                    x, y = self.maxPositions[d][i * outputShape + j]
+                    x, y = self.extPositions[d][i * outputShape + j]
                     previousErrors[d][x,y] += errors[d][i,j]
 
         return previousErrors
@@ -221,7 +223,8 @@ class MaxpoolLayer(Layer):
 
     def load(path):
         data = datautil.loadData(path)
-        return MaxpoolLayer(int(data[1]))
+        return ExtremumPoolLayer(int(data[1]))
+
 
 
 class FlatteningLayer(Layer):
@@ -370,7 +373,7 @@ class FullyConnectedLayer(Layer):
         return 'Fully Connected Layer\n size: ' + str(self.size) +'\n activation:' + \
                 self.activationFunction.getName()
 
-layerMap = {'CONV': ConvolutionLayer, 'MAXP': MaxpoolLayer, \
+layerMap = {'CONV': ConvolutionLayer, 'MAXP': ExtremumPoolLayer, \
         'FLAT': FlatteningLayer, 'FCON': FullyConnectedLayer}
 
 def getLayerById(id):

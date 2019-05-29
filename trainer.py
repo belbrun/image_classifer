@@ -16,6 +16,11 @@ epochs = 1
 learningRate = 0.15
 drop = 0.5
 
+#preprocessing factors
+gray = True
+avaraged = True
+shape = 200,200
+
 
 #blastomResults = np.array([1, 0])
 #othersResults = np.array([0,1])
@@ -27,13 +32,13 @@ datasetPath = 'dataset/2/ALL_IDB2/img/'
 def initializeNN():
     neuralNet = NeuralNetwork(crossEntropyLoss)
     neuralNet.addLayer(ConvolutionLayer(3,5,1,Sigmoid(),3))
-    neuralNet.addLayer(MaxpoolLayer(5))
+    neuralNet.addLayer(ExtremumPoolLayer(5))
     neuralNet.addLayer(ConvolutionLayer(2,4,1,Sigmoid(),3))
-    neuralNet.addLayer(MaxpoolLayer(3))
+    neuralNet.addLayer(ExtremumPoolLayer(3))
     neuralNet.addLayer(ConvolutionLayer(3,3,1,Sigmoid(),2))
-    neuralNet.addLayer(MaxpoolLayer(2))
+    neuralNet.addLayer(ExtremumPoolLayer(2))
     neuralNet.addLayer(FlatteningLayer())
-    neuralNet.addLayer(FullyConnectedLayer(200, 98283, Sigmoid()))
+    neuralNet.addLayer(FullyConnectedLayer(200, 21168, Sigmoid()))
     neuralNet.addLayer(FullyConnectedLayer(50, 200, Sigmoid()))
     neuralNet.addLayer(FullyConnectedLayer(10, 50, Sigmoid()))
     neuralNet.addLayer(FullyConnectedLayer(3, 10, Sigmoid()))
@@ -53,7 +58,7 @@ def fillIndex(index):
 def getEntity(index, isBlastom):
     name = fillIndex(index) + '_1.tif' if isBlastom  else \
     fillIndex(index) + '_0.tif'
-    entity = datautil.getInput(name)
+    entity = datautil.getInput(name, datasetPath, gray, shape, avaraged)
     #print('ENTITIY: ', entity)
     return entity
 
@@ -184,8 +189,8 @@ def printNetwork(path):
     NeuralNetwork.load(path).printNetwork()
 
 def main():
-    testingProcedure()
-    #trainingProcedure(False)
+    #testingProcedure()
+    trainingProcedure()
     #printNetwork('network_data/new_network/')
 
 if __name__ == '__main__':
