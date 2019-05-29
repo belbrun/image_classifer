@@ -1,4 +1,5 @@
 from PIL import Image
+import preprocessor as pp
 import numpy as np
 import os
 
@@ -16,30 +17,48 @@ def normalize(images):
         #print('NORML', normalizedImages)
     return normalizedImages
 
-def getInput(name, path = 'dataset/2/ALL_IDB2/img/' ):
+def getInput(name, path = 'dataset/2/ALL_IDB2/img/', gray = False, shape = None,\
+    avaraged = False, clusterSize = 2, stride = 2):
 
-    pixelArray = getImageAsVector(name, path)
-    rows,columns = pixelArray.shape[0], pixelArray.shape[1]
-    redArray = np.empty((rows,columns))
-    greenArray = np.empty((rows,columns))
-    blueArray = np.empty((rows,columns))
 
-    for i in range(0, columns-1):
-        for j in range(0, rows-1):
-            redArray[i,j] = pixelArray[i,j,0]
-            greenArray[i,j] = pixelArray[i,j,1]
-            blueArray[i,j] = pixelArray[i,j,2]
+    pixelArray = getImageAsVector(name, path, gray, shape)
+    output = []
 
-    return normalize([redArray, greenArray, blueArray])
+    if gray:
+        output.append(pixelArray)
+    else:
+        rows,columns = pixelArray.shape[0], pixelArray.shape[1]
+        redArray = np.empty((rows,columns))
+        greenArray = np.empty((rows,columns))
+        blueArray = np.empty((rows,columns))
 
-def getImageAsVector(name, path):
+        for i in range(0, columns-1):
+            for j in range(0, rows-1):
+                redArray[i,j] = pixelArray[i,j,0]
+                greenArray[i,j] = pixelArray[i,j,1]
+                blueArray[i,j] = pixelArray[i,j,2]
+        output.append(redArray)
+        output.append(greenArray)
+        output.append(blueArray)
+
+    if avaraged:
+        output = pp.avaragePool(output)
+
+    return normalize(output)
+
+def getImageAsVector(name, path, gray = False, shape = None):
     image = Image.open(path + name, 'r')
-    image = image.crop((30,30,227,227))
-    #image = image.resize((20,180), Image.BILINEAR)
-    #image.show()
+    if gray or shape:
+        image = processImage(image, gray, shape)
     pixelArray = np.array(image)
     return pixelArray
 
+def processImage(image, gray, shape):
+    if gray:
+        image = pp.toGrayScale(image)
+    if shape:
+        image = pp.crop(image, shape)
+    return image
 
 def saveData(path, data):
     with open(path + 'config.txt', 'w+') as file:
@@ -66,17 +85,28 @@ def getLayerIds(path):
             layerIds.append(file.read(4))
     return layerIds
 
-def getImageFromArrays(arrays):
-    redArray,greenArray,blueArray = arrays[0]*255,arrays[1]*255,arrays[2]*255
-    rgbArray = np.empty((redArray.shape[0], redArray.shape[1], 3))
-    for i in range(0, redArray.shape[0]):
-        for j in range(0, redArray.shape[1]):
-            rgbArray[i,j] = np.array([redArray[i,j], greenArray[i,j], blueArray[i,j]])
-    image = Image.fromarray(rgbArray.astype('uint8'), 'RGB')
+def getImageFromArrays(arrays, gray = False):
+
+    imageArray = None
+    type = None
+
+    if gray :
+        type = 'L'
+        imageArray = arrays[0]*255
+    else :
+        type = 'RGB'
+        redArray,greenArray,blueArray = arrays[0]*255,arrays[1]*255,arrays[2]*255
+        imageArray = np.empty((redArray.shape[0], redArray.shape[1], 3))
+        for i in range(0, redArray.shape[0]):
+            for j in range(0, redArray.shape[1]):
+                imageArray[i,j] = \
+                    np.array([redArray[i,j], greenArray[i,j], blueArray[i,j]])
+    image = Image.fromarray(imageArray.astype('uint8'), type)
+    print(image.size)
     image.show()
 
 
 
 if __name__ == '__main__':
-    print(len(getInput('Im001_1.tif')))
-    print(len(getInput('Im131_0.tif')))
+    arrays = getInput('Im200_0.tif', gray = True,shape =(230,230), avaraged = True)
+    getImageFromArrays(arrays, True)

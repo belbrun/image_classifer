@@ -128,7 +128,8 @@ def isCorrect(value, isBlastom):
     #limit = 0.48971075
     #limit = 0.4961616
     #limit = 0.4976952 #epoch3
-    limit = 0.498102467
+    #limit = 0.498102467 #epoch4
+    limit = 0.4982373
 
     print(value, limit)
     if value == limit: return None
@@ -167,17 +168,17 @@ def test(neuralNet):
     print(avgValue/(2*(endIndex-startIndex)))
 
 def testingProcedure():
-    neuralNet = NeuralNetwork.load('network_data/network_first_try/epoch4/')
+    neuralNet = NeuralNetwork.load('network_data/network_first_try/epoch5/')
     test(neuralNet)
 
 def trainingProcedure(new = True):
     if new :
         neuralNet = initializeNN()
     else :
-        neuralNet = NeuralNetwork.load('network_data/network_first_try/epoch3/')
+        neuralNet = NeuralNetwork.load('network_data/network_first_try/epoch4/')
     log = train(neuralNet)
-    neuralNet.save('network_data/network_first_try/epoch4/')
-    datautil.writeLog('network_data/network_first_try/epoch4/', log)
+    neuralNet.save('network_data/network_first_try/epoch5/')
+    datautil.writeLog('network_data/network_first_try/epoch5/', log)
 
 def printNetwork(path):
     NeuralNetwork.load(path).printNetwork()
