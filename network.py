@@ -67,8 +67,8 @@ class NeuralNetwork():
         for index,layer in enumerate(self.layers[::-1]):
             #print('----------------')
             #print(layer, '\n', errors)
-            errors = layer.propagateBackwards(errors, 2**(index-3))
             #learningRate *= 2
+            errors = layer.propagateBackwards(errors, learningRate**(index-3))
 
 
     def train(self, x, results, learningRate):

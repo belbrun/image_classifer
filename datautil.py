@@ -48,8 +48,7 @@ def getInput(name, path = 'dataset/2/ALL_IDB2/img/', gray = False, shape = None,
 
 def getImageAsVector(name, path, gray = False, shape = None):
     image = Image.open(path + name, 'r')
-    if gray or shape:
-        image = processImage(image, gray, shape)
+    image = processImage(image, gray, shape)
     pixelArray = np.array(image)
     return pixelArray
 
@@ -79,8 +78,8 @@ def writeLog(path, log):
 
 def getLayerIds(path):
     layerIds = []
-    dirList = os.listdir(path)
-    for i in range(0, len(dirList) - 1):
+    numOfLayers = len([i for i in os.listdir(path) if not i.endswith('.txt')])
+    for i in range(0, numOfLayers):
         with open(path + str(i) + '/config.txt', 'r+') as file:
             layerIds.append(file.read(4))
     return layerIds
@@ -102,11 +101,11 @@ def getImageFromArrays(arrays, gray = False):
                 imageArray[i,j] = \
                     np.array([redArray[i,j], greenArray[i,j], blueArray[i,j]])
     image = Image.fromarray(imageArray.astype('uint8'), type)
-    print(image.size)
     image.show()
 
 
 
 if __name__ == '__main__':
-    arrays = getInput('Im200_0.tif', gray = True,shape =(230,230), avaraged = True)
+    arrays = getInput('Im221_0.tif', gray = True, shape = (200,200), avaraged = False)
+    print(arrays[0].shape)
     getImageFromArrays(arrays, True)

@@ -33,5 +33,5 @@ def toGrayScale(image):
 def crop(image, shape):
 
     height, width = image.size
-    cropHeight, cropWidth = int((height-shape[0])/2), int((height-shape[0])/2)
+    cropHeight, cropWidth = (height-shape[0])//2, (width-shape[1])//2
     return image.crop((cropHeight, cropWidth, height-cropHeight, width-cropWidth))
