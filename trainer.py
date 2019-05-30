@@ -155,7 +155,10 @@ def isCorrect(value, isBlastom):
     #limit = 0.4982373
     #limit = 0.49677685
     #limit = 0.500002
-    #limit = 0.49941376 #e20
+    #limit = 0.49941376 #e20 62%
+    #limit = 0.4994173
+    #limit = 0.499426123 #e23 64%
+    #limit = 0.49943805
 
     print(value, limit)
     if value == limit: return None
@@ -166,7 +169,7 @@ def isCorrect(value, isBlastom):
 def test(neuralNet):
     counts = [0,0,0,0] #correct, false positives, false negatives, inconclusive
     avgValue = 0
-    startIndex = 90
+    startIndex = 80
     endIndex = 130
 
     for index in range(startIndex, endIndex):
@@ -194,7 +197,7 @@ def test(neuralNet):
     print(avgValue/(2*(endIndex-startIndex)))
 
 def testingProcedure():
-    neuralNet = NeuralNetwork.load('network_data/new_network/epoch20/')
+    neuralNet = NeuralNetwork.load('network_data/new_network/epoch25/')
     test(neuralNet)
 
 def trainingProcedure(new = True):
@@ -213,8 +216,8 @@ def printNetwork(path):
     NeuralNetwork.load(path).printNetwork()
 
 def main():
-    #testingProcedure()
-    trainingProcedure(False)
+    testingProcedure()
+    #trainingProcedure(False)
     #printNetwork('network_data/new_network/')
 
 if __name__ == '__main__':
