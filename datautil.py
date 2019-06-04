@@ -17,40 +17,59 @@ def normalize(images):
         #print('NORML', normalizedImages)
     return normalizedImages
 
+def splitToComponents(pixelArray):
+    output = []
+    rows,columns = pixelArray.shape[0], pixelArray.shape[1]
+    redArray = np.empty((rows,columns))
+    greenArray = np.empty((rows,columns))
+    blueArray = np.empty((rows,columns))
+
+    for i in range(0, columns-1):
+        for j in range(0, rows-1):
+            redArray[i,j] = pixelArray[i,j,0]
+            greenArray[i,j] = pixelArray[i,j,1]
+            blueArray[i,j] = pixelArray[i,j,2]
+
+    return [redArray, greenArray, blueArray]
+
+
 def getInput(name, path = 'dataset/2/ALL_IDB2/img/', gray = False, shape = None,\
-    avaraged = False, clusterSize = 2, stride = 2):
+    rotations = False, avaraged = False):
 
+    imageAsArrays = getImageAsArrays(name, path, gray, shape, rotations)
+    output = []
 
-    pixelArray = getImageAsVector(name, path, gray, shape)
+    for rotation in imageAsArrays:
+        output.append(processArrays(rotation, gray, avaraged))
+
+    return output
+
+def processArrays(pixelArrays, gray = False, avaraged = False):
     output = []
 
     if gray:
-        output.append(pixelArray)
+        output.append(pixelArrays)
     else:
-        rows,columns = pixelArray.shape[0], pixelArray.shape[1]
-        redArray = np.empty((rows,columns))
-        greenArray = np.empty((rows,columns))
-        blueArray = np.empty((rows,columns))
-
-        for i in range(0, columns-1):
-            for j in range(0, rows-1):
-                redArray[i,j] = pixelArray[i,j,0]
-                greenArray[i,j] = pixelArray[i,j,1]
-                blueArray[i,j] = pixelArray[i,j,2]
-        output.append(redArray)
-        output.append(greenArray)
-        output.append(blueArray)
+        output.extend(splitToComponents(pixelArrays))
 
     if avaraged:
         output = pp.avaragePool(output)
 
     return normalize(output)
 
-def getImageAsVector(name, path, gray = False, shape = None):
+
+def getImageAsArrays(name, path, gray = False, shape = None, rotations = False):
     image = Image.open(path + name, 'r')
-    image = processImage(image, gray, shape)
-    pixelArray = np.array(image)
-    return pixelArray
+    imageAsArrays = []
+
+    if rotations:
+        images = pp.getRotations(image)
+        for image in images:
+            imageAsArrays.append(np.array(processImage(image, gray, shape)))
+    else :
+        imageAsArrays.append(np.array(processImage(image, gray, shape)))
+
+    return imageAsArrays
 
 def processImage(image, gray, shape):
     if gray:
@@ -106,6 +125,6 @@ def getImageFromArrays(arrays, gray = False):
 
 
 if __name__ == '__main__':
-    arrays = getInput('Im221_0.tif', gray = True, shape = (200,200), avaraged = False)
-    print(arrays[0].shape)
-    getImageFromArrays(arrays, True)
+    arrays = getInput('Im221_0.tif', gray = True, shape = (200,200), avaraged = True, rotations = False)
+    print(arrays[0][0].shape)
+    getImageFromArrays(arrays[2], True)

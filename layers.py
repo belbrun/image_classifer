@@ -2,8 +2,8 @@ import numpy as np
 import datautil
 from functions import getActivationFunction
 
-minWeight = -0.33
-maxWeight = 0.33
+minWeight = -0.5
+maxWeight = 0.5
 
 class Layer:
 
@@ -161,11 +161,12 @@ class ConvolutionLayer(Layer):
 
 class ExtremumPoolLayer(Layer):
 
-    comparationFunctions = { 'max': lambda x,y: x > y, 'min': lambda x,y: x < y}
+    comparationFunctions = { 'max': lambda x,y: x > y, 'min': lambda x,y: x < y, 'min\n': lambda x,y: x < y, "" : lambda x,y: x < y }
 
-    def __init__(self, clusterSize = 2, type = 'max'):
+    def __init__(self, clusterSize = 2, type = 'min'):
         self.clusterSize = clusterSize
         self.dataLength = 0
+        self.type = type
         self.comparationFunction = ExtremumPoolLayer.comparationFunctions[type]
 
     def propagateForward(self, input):
@@ -219,11 +220,11 @@ class ExtremumPoolLayer(Layer):
         return previousErrors
 
     def save(self, path):
-        datautil.saveData(path, ['MAXP', self.clusterSize])
+        datautil.saveData(path, ['MAXP', self.clusterSize, self.type])
 
     def load(path):
         data = datautil.loadData(path)
-        return ExtremumPoolLayer(int(data[1]))
+        return ExtremumPoolLayer(int(data[1]), data[2])
 
 
 

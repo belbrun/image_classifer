@@ -35,3 +35,9 @@ def crop(image, shape):
     height, width = image.size
     cropHeight, cropWidth = (height-shape[0])//2, (width-shape[1])//2
     return image.crop((cropHeight, cropWidth, height-cropHeight, width-cropWidth))
+
+def getRotations(image):
+    outputs = []
+    for i in range(0, 360, 90):
+        outputs.append(image.rotate(i))
+    return outputs
