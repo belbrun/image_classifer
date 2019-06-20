@@ -5,17 +5,7 @@ import os
 
 #def loadImages
 
-def normalize(images):
-    normalizedImages = []
-    for image in images:
-        #print('Image: ', image)
-        max = np.max(image)
-        min = np.min(image)
-        #print('MAXMIN: ', max, min)
 
-        normalizedImages.append((image - min)/(max-min))
-        #print('NORML', normalizedImages)
-    return normalizedImages
 
 def splitToComponents(pixelArray):
     output = []
@@ -55,7 +45,7 @@ def processArrays(pixelArrays, gray = False, avaraged = False):
     if avaraged:
         output = pp.avaragePool(output)
 
-    return normalize(output)
+    return pp.normalize(output)
 
 
 def getImageAsArrays(name, path, gray = False, shape = None, rotations = False):
@@ -83,8 +73,9 @@ def saveData(path, data):
         for information in data:
             file.write(str(information)+'|')
 
-def loadData(path):
-    with open(path + 'config.txt', 'r+') as file:
+def loadData(path, old = False):
+    name = 'old_config.txt' if old else 'config.txt'
+    with open(path + name, 'r+') as file:
         return file.read().split('|')
 
 def makeDirectory(path):
@@ -94,6 +85,15 @@ def writeLog(path, log):
     with open(path + 'log.txt', 'w+') as file:
         for line in log:
             file.write(line + '\n')
+
+def writeResults(path, results):
+    with open(path + 'results.txt', 'w+') as file:
+        for line in results:
+            file.write(str(line) + '|')
+
+def readResults(path):
+    with open(path + 'results.txt', 'r+') as file:
+        return file.read().split('|')
 
 def getLayerIds(path):
     layerIds = []
@@ -120,11 +120,12 @@ def getImageFromArrays(arrays, gray = False):
                 imageArray[i,j] = \
                     np.array([redArray[i,j], greenArray[i,j], blueArray[i,j]])
     image = Image.fromarray(imageArray.astype('uint8'), type)
-    image.show()
 
+    return image
 
 
 if __name__ == '__main__':
-    arrays = getInput('Im221_0.tif', gray = True, shape = (200,200), avaraged = True, rotations = False)
+    arrays = getInput('Im001_1.tif', gray = False, shape = (200,200), avaraged = True, rotations = False)
     print(arrays[0][0].shape)
-    getImageFromArrays(arrays[2], True)
+    image = getImageFromArrays(arrays[0], False)
+    image.save('dataset/examples/example2.png', 'png')

@@ -26,6 +26,19 @@ def avaragePool(pixelArrays, clusterSize = 2, stride = 2):
 
     return output
 
+def normalize(images):
+    normalizedImages = []
+    for image in images:
+        #print('Image: ', image)
+        max = np.max(image)
+        min = np.min(image)
+        #print('MAXMIN: ', max, min)
+
+        normalizedImages.append((image - min)/(max-min))
+        #print('NORML', normalizedImages)
+    return normalizedImages
+    
+
 def toGrayScale(image):
     return image.convert('L')
 

@@ -2,8 +2,8 @@ import numpy as np
 import datautil
 from functions import getActivationFunction
 
-minWeight = -0.5
-maxWeight = 0.5
+minWeight = -0.42
+maxWeight = 0.42
 
 class Layer:
 
@@ -56,7 +56,8 @@ class ConvolutionLayer(Layer):
             for j in range(0, inputDepth):
                 filter = None
                 if path:
-                    filter = np.load(path+str(i)+str(j)+'.npy')
+                    filter = np.load(path+'g'+str(i)+'f'+str(j)+'.npy')
+                    #filter = np.load(path+str(i)+str(j)+'.npy')
                 else:
                     filter = np.random.uniform(minWeight, maxWeight,size=(filterSize,filterSize))
                 filterGroup.append(filter)
@@ -127,22 +128,25 @@ class ConvolutionLayer(Layer):
 
     def correctWeights(self, weightErrors, biasErrors, learningRate):
 
-        #print('Errors: ', weightErrors * int(learningRate))
+        #print('Errors: ', weightErrors)
         for (index, filterGroup) in enumerate(self.filters):
             for (d, filter) in enumerate(filterGroup):
                 for a in range(0, self.filterSize):
                     for b in range(0, self.filterSize):
-                        filter[a,b] += \
+                        #print('E:', learningRate * weightErrors[index][d][a,b])
+                        #x = learningRate * weightErrors[index][d][a,b]
+                        #if x > 0.1 : print(x)
+                        filter[a,b] -= \
                             learningRate * weightErrors[index][d][a,b]
 
-            self.bias[index] += learningRate * biasErrors[index]
+            self.bias[index] -= learningRate * biasErrors[index]
 
     def save(self, path):
         datautil.saveData(path, ['CONV', self.filterNumber, self.filterSize,\
         self.stride, self.inputDepth, self.activationFunction.getName()])
         for (i, filterGroup) in enumerate(self.filters):
             for (j, filter) in enumerate(filterGroup):
-                np.save(path + str(i) + str(j), filter)
+                np.save(path + 'g' + str(i) + 'f' + str(j), filter)
         np.save(path + 'b', self.bias)
 
     def load(path):
@@ -168,6 +172,7 @@ class ExtremumPoolLayer(Layer):
         self.dataLength = 0
         self.type = type
         self.comparationFunction = ExtremumPoolLayer.comparationFunctions[type]
+
 
     def propagateForward(self, input):
 
@@ -340,14 +345,15 @@ class FullyConnectedLayer(Layer):
 
     def correctWeights(self, weightErrors, biasErrors, learningRate):
 
-            #print('Errors: ', weightErrors * int(learningRate))
+            #print('Errors FC: ', weightErrors)
             for neuronIndex in range(0, self.size):
 
                 for i in range(0, self.inputSize):
-
-                    self.weights[neuronIndex][i] += \
+                    #x = learningRate * weightErrors[neuronIndex][i]
+                    #if x > 0.1 : print(x)
+                    self.weights[neuronIndex][i] -= \
                         learningRate * weightErrors[neuronIndex][i]
-                self.bias[neuronIndex] += \
+                self.bias[neuronIndex] -= \
                     learningRate * biasErrors[neuronIndex]
 
     def save(self, path):

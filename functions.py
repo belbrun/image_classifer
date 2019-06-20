@@ -1,7 +1,7 @@
 import numpy as np
 
 def getActivationFunction(id):
-    return functions[id]
+    return activationFunctions[id]
 
 class Function:
 
@@ -111,7 +111,7 @@ class RatioFunction(Function):
     def getName(self):
         return 'ratio'
 
-functions = {'sig':Sigmoid(), 'relu':ReLU(), 'lrelu': LeakyReLU(), \
+activationFunctions = {'sig':Sigmoid(), 'relu':ReLU(), 'lrelu': LeakyReLU(), \
 'tanh': TanHiperbolic(), 'smax': SoftMax(), 'ratio': RatioFunction()}
 
 
@@ -121,11 +121,19 @@ def simpleCost(outputValue, correctValue):
     #print('Err: ', correctValue - outputValue)
     return (correctValue - outputValue)/correctValue
 
-def crossEntropyLoss(outputValue, correctValue):
-    print('O: ', outputValue, ' C: ', correctValue)
+class CrossEntropy(Function):
 
-    return -(correctValue*np.log(outputValue) - \
-            (1-correctValue)*np.log(1-outputValue))
+    def activate(self, outputValue, correctValue):
+
+        return -(correctValue*np.log(outputValue) + \
+                (1-correctValue)*np.log(1-outputValue))
+
+    def derived(self, outputValue, correctValue):
+        #return (1-correctValue)/outputValue - correctValue/(1-outputValue) #change error values
+        return (1-correctValue)/(1-outputValue) - correctValue/outputValue
+
+    def getName(self):
+        return 'ratio'
 
 if __name__ == '__main__':
     x = RatioFunction()

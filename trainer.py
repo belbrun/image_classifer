@@ -1,18 +1,17 @@
 from network import *
 from layers import *
 from datautil import *
-from functions import crossEntropyLoss
 
 blastomCount = 130
 othersCount = 130
 
 datasetSize = 260
 
-trainingSetFactor = 0.7
-validationSetFactor = 0.1
+trainingSetFactor = 0.5
+validationSetFactor = 0.2
 testSetFactor = 0.3
 
-epochs = 20
+epochs = 5
 
 
 #preprocessing factors
@@ -27,36 +26,41 @@ blastomResults = np.array([1])
 othersResults = np.array([0])
 
 datasetPath = 'dataset/2/ALL_IDB2/img/'
-networkPath = 'network_data/configuration6/'
+networkPath = 'network_data/configuration11/'
 
 def initializeNN():
-    neuralNet = NeuralNetwork(crossEntropyLoss)
+    neuralNet = NeuralNetwork()
     neuralNet.addLayer(ConvolutionLayer\
-    (filterNumber = 3, filterSize = 5, stride = 2, activationFunction = Sigmoid(), inputDepth = 1))
+    (filterNumber = 10, filterSize = 6, stride = 2, activationFunction = Sigmoid(), inputDepth = 3))
     neuralNet.addLayer(ExtremumPoolLayer(4, 'min'))
-    neuralNet.addLayer(ConvolutionLayer(4,4,2,Sigmoid(),3))
+    neuralNet.addLayer(ConvolutionLayer(30,5,2,Sigmoid(),10))
+    neuralNet.addLayer(ExtremumPoolLayer(4, 'min'))
+    neuralNet.addLayer(ConvolutionLayer(40,4,1,Sigmoid(),30))
     neuralNet.addLayer(ExtremumPoolLayer(3, 'min'))
-    neuralNet.addLayer(ConvolutionLayer(5,4,1,Sigmoid(),4))
+    neuralNet.addLayer(ConvolutionLayer(50,4,1,Sigmoid(),40))
     neuralNet.addLayer(ExtremumPoolLayer(3, 'min'))
-    neuralNet.addLayer(ConvolutionLayer(8,3,1,Sigmoid(),5))
+    neuralNet.addLayer(ConvolutionLayer(60,3,1,Sigmoid(),50))
     neuralNet.addLayer(ExtremumPoolLayer(2, 'min'))
-    neuralNet.addLayer(ConvolutionLayer(10,3,1,Sigmoid(),8))
-    neuralNet.addLayer(ExtremumPoolLayer(2, 'min'))
-    neuralNet.addLayer(ConvolutionLayer(20,3,1,Sigmoid(),10))
+    neuralNet.addLayer(ConvolutionLayer(70,3,1,Sigmoid(),60))
     neuralNet.addLayer(ExtremumPoolLayer(2, 'min'))
     neuralNet.addLayer(FlatteningLayer())
-    neuralNet.addLayer(FullyConnectedLayer(200, 500, Sigmoid()))
-    neuralNet.addLayer(FullyConnectedLayer(80, 200, Sigmoid()))
-    neuralNet.addLayer(FullyConnectedLayer(40, 80, Sigmoid()))
-    neuralNet.addLayer(FullyConnectedLayer(20, 40, Sigmoid()))
-    neuralNet.addLayer(FullyConnectedLayer(10, 20, Sigmoid()))
-    neuralNet.addLayer(FullyConnectedLayer(5, 10, Sigmoid()))
-    neuralNet.addLayer(FullyConnectedLayer(2, 5, Sigmoid()))
-    neuralNet.addLayer(FullyConnectedLayer(1, 2, Sigmoid()))
+    neuralNet.addLayer(FullyConnectedLayer(50, 280, Sigmoid()))
+    neuralNet.addLayer(FullyConnectedLayer(10, 50, Sigmoid()))
+    neuralNet.addLayer(FullyConnectedLayer(4, 10, Sigmoid()))
+    neuralNet.addLayer(FullyConnectedLayer(1, 4, Sigmoid()))
 
     return neuralNet
 
 
+def initializeNN2():
+    neuralNet = NeuralNetwork()
+    neuralNet.addLayer(ConvolutionLayer(15,5,10,Sigmoid(),3))
+    neuralNet.addLayer(ExtremumPoolLayer(2, 'min'))
+    neuralNet.addLayer(ConvolutionLayer(40,5, 2,Sigmoid(),15))
+    neuralNet.addLayer(ExtremumPoolLayer(2, 'min'))
+    neuralNet.addLayer(FlatteningLayer())
+    neuralNet.addLayer(FullyConnectedLayer(1, 160, Sigmoid()))
+    return neuralNet
 
 def fillIndex(index):
     if index < 10:
@@ -105,20 +109,30 @@ def formatMessage(action, epoch, error, index = 0, isBlastom = True, output = No
 
     return message
 
-def saveEpoch(neuralNet, epoch, log):
+def saveEpoch(neuralNet, epoch, log = None, data = None):
     path = networkPath + 'epoch' + str(epoch) + '/'
     datautil.makeDirectory(path)
     neuralNet.save(path)
-    datautil.writeLog(path, log)
+    if log:
+        datautil.writeLog(path, log)
 
 def train(neuralNet):
+    #makee training module indepentend with a class training session
+
+    startEpoch = 1
+    drop = 0.95
+    learningRate = 0.008
+    trainingLog = []
+
     trainingSetSize = int(round(datasetSize * trainingSetFactor / 2))
     validationSetSize = int(round(datasetSize * validationSetFactor/2))
-    trainingLog = []
+    print('Training set size: ', trainingSetSize, 'validationSetSize: ', validationSetSize)
+
+    saveEpoch(neuralNet, 0, data = [str(gray), str(avaraged), str(shape), \
+        str(trainingSetFactor), str(validationSetFactor)])
+
     lastAvgError = None
-    learningRate = 2.2
-    drop = 0.05
-    for i in range(1, epochs + 1):
+    for i in range(startEpoch, epochs + 1):
 
         avgError = 0
         for index in range(1, trainingSetSize):
@@ -146,27 +160,39 @@ def train(neuralNet):
 
         for index in range(trainingSetSize, trainingSetSize + validationSetSize):
             output, error = feedEntity(neuralNet, index, True)
-            blastomResults.append(output)
+            blastomResults.append(output[0])
             avgError += abs(error)
             trainingLog.append(formatMessage('VALIDATION', i, error, index, True, output))
             print(trainingLog[-1])
             output, error = feedEntity(neuralNet, index, False)
-            otherResults.append(output)
+            otherResults.append(output[0])
             trainingLog.append(formatMessage('VALIDATION', i, error, index, False, output))
             print(trainingLog[-1])
             avgError += abs(error)
 
+        limit, results = \
+        NeuralNetwork.calculateClassificationLimit(blastomResults, otherResults)
         currentAvgError =  avgError/(validationSetSize*2)
+        trainingLog.append\
+        ('VALIDATION RESULTS : ' + str(results) + 'LIMIT: ' + str(limit))
+        print(trainingLog[-1])
         trainingLog.append(formatMessage('VALIDATION', i, \
             currentAvgError, isAvarage = True))
         print(trainingLog[-1])
-        saveEpoch(neuralNet, i, trainingLog)
+        neuralNet.setClassificationLimit(limit)
+
+        print('Test on training set')
+        trainingLog.append(str(test(neuralNet, 1, 10)))
+        print(trainingLog[-1])
+        saveEpoch(neuralNet, i, trainingLog, \
+        [str(gray), str(avaraged), str(shape), str(trainingSetFactor), \
+        str(validationSetFactor)])
         if lastAvgError and currentAvgError * 0.9 > lastAvgError:
             break
         else :
             lastAvgError = currentAvgError
 
-        learningRate -= drop
+        learningRate *= drop
 
     return trainingLog
 
@@ -188,8 +214,7 @@ def train(neuralNet):
     #limit = 0.49808655 conf3 e10
     #limit =  0.49856540954
 
-def findClassificationLimit(epoch, startIndex = 1, endIndex = 10):
-    neuralNet = NeuralNetwork.load(networkPath + 'epoch' + str(epoch) + '/', False)
+def findClassificationLimit(neuralNet, startIndex = 1, endIndex = 10):
     blastomResults = []
     otherResults = []
     for index in range(startIndex, endIndex):
@@ -197,14 +222,12 @@ def findClassificationLimit(epoch, startIndex = 1, endIndex = 10):
         blastomResults.append(output)
         output, error = feedEntity(neuralNet, index, False)
         otherResults.append(output)
-    results, limit = \
-            NeuralNetwork.calculateClassificationLimit(blastomResults, otherResults)
-    print(results, limit)
+    return NeuralNetwork.calculateClassificationLimit(blastomResults, otherResults)
+
 
 def test(neuralNet, startIndex = 90, endIndex = 130):
     counts = [0,0,0] #correct, false positives, false negatives
-    print(neuralNet.classificationLimit)
-    for index in range(startIndex, endIndex):
+    for index in range(startIndex, endIndex + 1):
         correct = bool(testEntity(neuralNet, index, True))
 
         if correct:
@@ -219,10 +242,10 @@ def test(neuralNet, startIndex = 90, endIndex = 130):
         else:
             counts[1] += 1
         print('TEST----Example: ', index, '_0 Output: ', correct, ' Overall: ', counts)
-    print([round(x/sum(counts)*100, 2) for x in counts])
+    return [round(x/sum(counts)*100, 2) for x in counts]
 
 def testingProcedure():
-    neuralNet = NeuralNetwork.load(networkPath + 'epoch20/')
+    neuralNet = NeuralNetwork.load(networkPath + 'epoch8/')
     test(neuralNet)
     print('RESULTS ON TRAINING SET:')
     test(neuralNet, 1, 10)
@@ -230,24 +253,65 @@ def testingProcedure():
 
 def trainingProcedure(new = True):
     if new :
-        output = 0
-        while output > 0.505 or output < 0.495:
+        avgOutput = 0
+        while avgOutput > 0.51 or avgOutput < 0.49:
             neuralNet = initializeNN()
-            output = neuralNet.output(getEntity(1, True)[0])
+            outputs =[]
+            for i in range(1,3):
+                outputs.append(neuralNet.output(getEntity(i, True)[0]))
+                print(outputs)
+            avgOutput = sum(outputs)/len(outputs)
     else :
-        neuralNet = NeuralNetwork.load(networkPath + 'epoch22/')
+        neuralNet = NeuralNetwork.load(networkPath + 'epoch5/')
     log = train(neuralNet)
     #neuralNet.save('network_data/new_network/')
     #datautil.writeLog('network_data/new_network/', log)
 
+def findClassificationLimitsForConfiguration(configuration):
+    networkPath = 'network_data/' + configuration + '/'
+    epochs = 9
+    valStart = 1
+    valEnd = int(testSetFactor*datasetSize/2)
+    for i in range(4, epochs + 1):
+        path = networkPath + 'epoch' + str(i) + '/'
+        neuralNet = NeuralNetwork.load(path, False)
+        limit, results = findClassificationLimit(neuralNet, valStart, valEnd)
+        print(results)
+        data = [results, round(limit[0], 15)]
+        datautil.saveData(path, data)
+
+def testAllEpochs(configuration, validation = True):
+    networkPath = 'network_data/' + configuration + '/'
+    epochs = 10
+    results = []
+    validationStartIndex = int(trainingSetFactor * blastomCount)
+    trainingStartIndex = int((trainingSetFactor + validationSetFactor) * blastomCount)
+    start = validationStartIndex if validation else trainingStartIndex
+    end = trainingStartIndex if validation else int(datasetSize/2)
+
+    for i in range(1, epochs + 1):
+        path = networkPath + 'epoch' + str(i) + '/'
+        neuralNet = NeuralNetwork.load(path)
+        results.append(test(neuralNet, start, end))
+
+    if not validation:
+        datautil.writeResults(networkPath, results)
+    else:
+        print(results)
+
 def printNetwork(path):
     NeuralNetwork.load(path).printNetwork()
 
+
+
 def main():
     #testingProcedure()
-    #trainingProcedure()
+    trainingProcedure(True)
     #printNetwork('network_data/new_network/')
-    findClassificationLimit(13)
+    #findClassificationLimit(13)
+    #findClassificationLimitsForConfiguration('configuration7')
+    #testAllEpochs('configuration10', False)
+
 
 if __name__ == '__main__':
     main()

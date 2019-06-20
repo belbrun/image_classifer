@@ -4,7 +4,12 @@ import datautil
 
 class NeuralNetwork():
 
-    def __init__(self, errorFunction = simpleCost, classificationLimit = 0.5):
+    def __init__(self, errorFunction = CrossEntropy(), classificationLimit = 0.5):
+        """
+            Default constructor.
+            Uses cross entropy as a default error function
+            and sets the classification limit to 0.5.
+        """
         self.errorFunction = errorFunction
         self.layers = []
         self.classificationLimit = classificationLimit
@@ -12,7 +17,7 @@ class NeuralNetwork():
 
     def addLayer(self, layer):
         """
-        Add a layer to the neural network in sequential fashion.
+            Add a layer to the neural network in sequential fashion.
         """
         self.layers.append(layer)
 
@@ -22,13 +27,17 @@ class NeuralNetwork():
             the training or test set)
         """
 
-        for layer in self.layers:
+        for i, layer in enumerate(self.layers):
             x = layer.propagateForward(x)
-            #print(layer, x)
+            #if i == 3:
+            #    print(layer, x)
 
         return x
 
     def calculateOutputs(self, data):
+        """
+            Calculate outputs for a set of examples and return it as a list.
+        """
         outputs = []
 
         for instance in data:
@@ -37,6 +46,10 @@ class NeuralNetwork():
         return outputs
 
     def classify(self, x):
+        """
+            Return output as a classified value mapped to 1 or 0.
+            (used in binary classification).
+        """
         return self.classifyResult(self.output(x)[0])
 
     def feed(self, data):
@@ -44,15 +57,22 @@ class NeuralNetwork():
         return outputs
 
     def feedForError(self, x, result):
+        """
+            Return a tuple containing the output of the neural network for a
+            given input, and its error depending on the correct result.
+        """
         output = self.output(x)
         error = self.calculateError(output, result)
         return (output, error)
 
     def calculateError(self, output, result):
-
+        """
+            Calculate the error of a set of examples, given the correct results
+            for the set.
+        """
         errors = []
         for i in range(0, result.shape[0]):
-            errors.append(self.errorFunction(output[i], result[i]))
+            errors.append(self.errorFunction.derived(output[i], result[i]))
 
         return np.array(errors)
 
@@ -66,54 +86,93 @@ class NeuralNetwork():
         return error
 
     def learn(self, errors, learningRate):
+        """
+            Use backpropagation algorithm of each layer to propagate the
+            error thru the network and update the network weights using a
+            given learning rate.
+        """
 
         for index,layer in enumerate(self.layers[::-1]):
-            #print('----------------')
-            #print(layer, '\n', errors)
-            #learningRate *= 2
-            errors = layer.propagateBackwards(errors, learningRate**(index-3))
-
+            base = 1.9
+            #print(index, layer, learningRate * base**(index))
+            errors = layer.propagateBackwards(errors, learningRate * base**(index))
+            #print(layer, errors)
 
     def train(self, x, results, learningRate):
+        """
+            Train the network on a single example using a given learning rate.
+        """
         output = self.output(x)
+        print('O: ', output, 'C: ', results)
         errors = self.calculateError(output, results)
         self.learn(errors, learningRate)
         return errors
 
-    def calculateClassificationLimit(blastomResults, otherResults):
+    def getResultsForLimit(blastomResults, otherResults, limit):
+        correctBlastoms = len([i for i in blastomResults if i > limit])
+        correctOthers = len([i for i in otherResults if i < limit])
+        return [correctBlastoms + correctOthers, \
+                    len(otherResults) - correctOthers, \
+                    len(blastomResults) - correctBlastoms]
+
+
+    def calculateClassificationLimit(blastomResults, otherResults, forceFP = False):
+        #find median without outliers?
         blastomAvarage = sum(blastomResults)/len(blastomResults)
         otherAvarage = sum(otherResults)/len(blastomResults)
+        average = (blastomAvarage + otherAvarage)/ 2
         difference = abs(blastomAvarage - otherAvarage)/100
-        top = max([max(otherResults), max(blastomResults)])
-        limit = min([min(otherResults), min(blastomResults)])
-        print(top, limit)
+        top = max([max(otherResults), max(blastomResults)]) - difference
+        limit = min([min(otherResults), min(blastomResults)]) + difference
         bestResults = [0,0,0]
         bestLimit = 0
+        equalLimits = []
+
         while limit < top:
-            print('IN')
-            correctBlastoms = len([i for i in blastomResults if i > limit])
-            correctOthers = len([i for i in otherResults if i < limit])
-            results = [correctBlastoms + correctOthers, \
-                        len(otherResults) - correctOthers, \
-                        len(blastomResults) - correctBlastoms]
+
+            results = NeuralNetwork.getResultsForLimit\
+                (blastomResults, otherResults, limit)
 
             isBetterResult = results[0] > bestResults[0]
-            hasLessFP = results[0] == bestResults[0] and results[1] < bestResults[1]
+            isEqual = results[0] == bestResults[0]
+            hasLessFP = isEqual and \
+                results[1] < bestResults[1] and forceFP
+            #isLessExtreme = abs(limit - average) < abs(bestLimit - average)
+
 
             if isBetterResult or hasLessFP:
-                print(isBetterResult, hasLessFP)
-                print(limit, results)
+                #print('BETTER :', bestLimit, bestResults, limit, results)
                 bestLimit = limit
                 bestResults = results
+                #equalLimits = [limit]
+
+            #elif isEqual:
+                #print('EQUAL :', bestLimit, bestResults, limit, results)
+                #equalLimits.append(limit)
 
             limit += difference
 
-        return (bestLimit, bestResults)
 
-        #len([i for i in blastomResults if i > limit)
+
+        #if len(equalLimits) > 1:
+            #print('LIMITS:' , equalLimits)
+        #    limit = sum(equalLimits)/len(equalLimits)
+        #    result = NeuralNetwork.getResultsForLimit\
+        #        (blastomResults, otherResults, bestLimit)
+        #    if results[0] > bestResults[0]:
+        #        bestLimit = limit
+                #print(limit, bestLimit)
+
+
+        return (bestLimit, [round(x/sum(bestResults)*100, 2) for x in bestResults])
+
 
 
     def classifyResult(self, result):
+        """
+            Classify result as a 1 or 0 value depending on the networks
+            classification limit.
+        """
         print(result, self.classificationLimit, result > self.classificationLimit)
         return int(result > self.classificationLimit)
 
@@ -121,21 +180,33 @@ class NeuralNetwork():
         self.classificationLimit = classificationLimit
 
     def save(self, path, data = None):
+        """
+            Save the neural network to a given path.
+            Add any additional information as data in a list format. It will
+            be saved to a config text file.
+        """
         if data:
-            data.append(str(self.classificationLimit))
-            datautil.saveData(path, data)
+            data.append('{:01.15f}'.format(self.classificationLimit))
+        else:
+            print(str((self.classificationLimit)))
 
+            data = ['{:01.15f}'.format(self.classificationLimit)]
+        datautil.saveData(path, data)
         for (index, layer) in enumerate(self.layers):
             newPath = path + str(index) + '/'
             datautil.makeDirectory(newPath)
             layer.save(newPath)
 
     def load(path, loadConfig = True):
+        """
+            Load a network from the given path. Set load config to false if the
+            config text file should not be used to initialize the loaded network.
+        """
         if loadConfig:
-            classificationLimit = float(datautil.loadData(path)[-2])
+            classificationLimit = float(datautil.loadData(path, False)[-2])
         else :
             classificationLimit = 0.5
-        network = NeuralNetwork(crossEntropyLoss, classificationLimit)
+        network = NeuralNetwork(classificationLimit = classificationLimit)
         for (index, id) in enumerate(datautil.getLayerIds(path)):
             network.addLayer(\
                 getLayerById(id).load(path + str(index) + '/'))
