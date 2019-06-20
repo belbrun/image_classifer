@@ -12,15 +12,30 @@ class Layer:
 
 
     def propagateForward(self, input):
+        """
+            Use a forward propagation algorihm to get the layers output from
+            input data
+        """
         pass
 
     def propagateBackwards(self, errors):
+        """
+            Use a backpropagation algorith of the layer to propagate the error
+            to the its preceding layer and correct weights of the layer if there
+            are any.
+        """
         pass
 
     def save(self, path):
+        """
+            Save the data needed to recreate the layer to a given path.
+        """
         pass
 
     def load(path):
+        """
+            Load the layer data from the given path and create a layer from it.
+        """
         pass
 
 
@@ -49,7 +64,10 @@ class ConvolutionLayer(Layer):
         self.inputDepth = inputDepth
 
     def initializeFilters(filterNumber, inputDepth, filterSize, path = None):
-
+        """
+            Initialize and create the needed ammount of filters with random
+            numbers.
+        """
         filters = []
         for i in range(0, filterNumber):
             filterGroup = []
@@ -127,7 +145,10 @@ class ConvolutionLayer(Layer):
         return previousErrors
 
     def correctWeights(self, weightErrors, biasErrors, learningRate):
-
+        """
+            Correct the values of the layers filters using given error values and
+            a learning rate.
+        """
         #print('Errors: ', weightErrors)
         for (index, filterGroup) in enumerate(self.filters):
             for (d, filter) in enumerate(filterGroup):
@@ -295,7 +316,10 @@ class FullyConnectedLayer(Layer):
         self.softmax = softmax
 
     def initializeWeights(size, inputSize, path = None):
-
+        """
+            Initialize the needed ammount of weights with random numbers or
+            with values loaded from the given path, if the path is not None.
+        """
         weights = []
         for i in range(0, size):
             weightVector = None
@@ -344,17 +368,20 @@ class FullyConnectedLayer(Layer):
         return previousErrors
 
     def correctWeights(self, weightErrors, biasErrors, learningRate):
+        """
+            Correct the layers weights using given error values and learning rate.
+        """
+        #print('Errors FC: ', weightErrors)
+        for neuronIndex in range(0, self.size):
 
-            #print('Errors FC: ', weightErrors)
-            for neuronIndex in range(0, self.size):
+            for i in range(0, self.inputSize):
+                #x = learningRate * weightErrors[neuronIndex][i]
+                #if x > 0.1 : print(x)
+                self.weights[neuronIndex][i] -= \
+                    learningRate * weightErrors[neuronIndex][i]
 
-                for i in range(0, self.inputSize):
-                    #x = learningRate * weightErrors[neuronIndex][i]
-                    #if x > 0.1 : print(x)
-                    self.weights[neuronIndex][i] -= \
-                        learningRate * weightErrors[neuronIndex][i]
-                self.bias[neuronIndex] -= \
-                    learningRate * biasErrors[neuronIndex]
+            self.bias[neuronIndex] -= \
+                learningRate * biasErrors[neuronIndex]
 
     def save(self, path):
         datautil.saveData(path, ['FCON', self.size, self.inputSize, \
@@ -380,6 +407,8 @@ class FullyConnectedLayer(Layer):
         return 'Fully Connected Layer\n size: ' + str(self.size) +'\n activation:' + \
                 self.activationFunction.getName()
 
+#dictionary used to map a layer to its short string code for saving and loading
+#purpuses
 layerMap = {'CONV': ConvolutionLayer, 'MAXP': ExtremumPoolLayer, \
         'FLAT': FlatteningLayer, 'FCON': FullyConnectedLayer}
 
