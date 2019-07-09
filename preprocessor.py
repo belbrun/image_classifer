@@ -37,7 +37,7 @@ def normalize(images):
         normalizedImages.append((image - min)/(max-min))
         #print('NORML', normalizedImages)
     return normalizedImages
-    
+
 
 def toGrayScale(image):
     return image.convert('L')

@@ -5,7 +5,8 @@ import os
 
 #def loadImages
 
-
+#TODO: refactor datautil module to interact only with data
+#add rest of the logic to util, preprocessor, a possible parser
 
 def splitToComponents(pixelArray):
     output = []
@@ -86,6 +87,10 @@ def writeLog(path, log):
         for line in log:
             file.write(line + '\n')
 
+def readLog(path):
+    with open(path + 'log.txt', 'r+') as file:
+        return file.read().split('\n')
+
 def writeResults(path, results):
     with open(path + 'results.txt', 'w+') as file:
         for line in results:
@@ -125,7 +130,14 @@ def getImageFromArrays(arrays, gray = False):
 
 
 if __name__ == '__main__':
-    arrays = getInput('Im001_1.tif', gray = False, shape = (200,200), avaraged = True, rotations = False)
-    print(arrays[0][0].shape)
-    image = getImageFromArrays(arrays[0], False)
-    image.save('dataset/examples/example2.png', 'png')
+    arrays = getInput('Im001_1.tif', gray = True, shape = (200,200), avaraged = True, rotations = True)
+    #arrays = getInput('Im001_1.tif', gray = True)
+    #arrays = getInput('Im001_1.tif', shape = (200,200))
+    #arrays = getInput('Im001_1.tif', rotations = True)
+    #arrays = getInput('Im001_1.tif', avaraged = True)
+    #arrays = getInput('Im001_1.tif')
+
+    for i, array in enumerate(arrays):
+
+        image = getImageFromArrays(array, True)
+        image.save('dataset/examples/' + str(i) + '.png', 'png')

@@ -11,7 +11,7 @@ trainingSetFactor = 0.5
 validationSetFactor = 0.2
 testSetFactor = 0.3
 
-epochs = 5
+epochs = 15
 
 
 #preprocessing factors
@@ -26,12 +26,12 @@ blastomResults = np.array([1])
 othersResults = np.array([0])
 
 datasetPath = 'dataset/2/ALL_IDB2/img/'
-networkPath = 'network_data/configuration11/'
+networkPath = 'network_data/configuration15/'
 
 def initializeNN():
     neuralNet = NeuralNetwork()
     neuralNet.addLayer(ConvolutionLayer\
-    (filterNumber = 10, filterSize = 6, stride = 2, activationFunction = Sigmoid(), inputDepth = 3))
+    (filterNumber = 10, filterSize = 6, stride = 2, activationFunction = Sigmoid(), inputDepth = 1))
     neuralNet.addLayer(ExtremumPoolLayer(4, 'min'))
     neuralNet.addLayer(ConvolutionLayer(30,5,2,Sigmoid(),10))
     neuralNet.addLayer(ExtremumPoolLayer(4, 'min'))
@@ -119,17 +119,18 @@ def saveEpoch(neuralNet, epoch, log = None, data = None):
 def train(neuralNet):
     #makee training module indepentend with a class training session
 
-    startEpoch = 1
-    drop = 0.95
-    learningRate = 0.008
+    startEpoch = 7
+    drop = 1
+    learningRate = 0.002
     trainingLog = []
 
     trainingSetSize = int(round(datasetSize * trainingSetFactor / 2))
     validationSetSize = int(round(datasetSize * validationSetFactor/2))
     print('Training set size: ', trainingSetSize, 'validationSetSize: ', validationSetSize)
 
-    saveEpoch(neuralNet, 0, data = [str(gray), str(avaraged), str(shape), \
-        str(trainingSetFactor), str(validationSetFactor)])
+    if startEpoch == 1:
+        saveEpoch(neuralNet, 0, data = [str(gray), str(avaraged), str(shape), \
+            str(trainingSetFactor), str(validationSetFactor)])
 
     lastAvgError = None
     for i in range(startEpoch, epochs + 1):
@@ -214,7 +215,7 @@ def train(neuralNet):
     #limit = 0.49808655 conf3 e10
     #limit =  0.49856540954
 
-def findClassificationLimit(neuralNet, startIndex = 1, endIndex = 10):
+def findClassificationLimit(neuralNet, startIndex = 1, endIndex = 10, forPlotting = False):
     blastomResults = []
     otherResults = []
     for index in range(startIndex, endIndex):
@@ -222,7 +223,7 @@ def findClassificationLimit(neuralNet, startIndex = 1, endIndex = 10):
         blastomResults.append(output)
         output, error = feedEntity(neuralNet, index, False)
         otherResults.append(output)
-    return NeuralNetwork.calculateClassificationLimit(blastomResults, otherResults)
+    return NeuralNetwork.calculateClassificationLimit(blastomResults, otherResults, forPlotting = forPlotting)
 
 
 def test(neuralNet, startIndex = 90, endIndex = 130):
@@ -262,7 +263,7 @@ def trainingProcedure(new = True):
                 print(outputs)
             avgOutput = sum(outputs)/len(outputs)
     else :
-        neuralNet = NeuralNetwork.load(networkPath + 'epoch5/')
+        neuralNet = NeuralNetwork.load(networkPath + 'epoch6/')
     log = train(neuralNet)
     #neuralNet.save('network_data/new_network/')
     #datautil.writeLog('network_data/new_network/', log)
@@ -282,14 +283,14 @@ def findClassificationLimitsForConfiguration(configuration):
 
 def testAllEpochs(configuration, validation = True):
     networkPath = 'network_data/' + configuration + '/'
-    epochs = 10
+    epochs = 11
     results = []
     validationStartIndex = int(trainingSetFactor * blastomCount)
     trainingStartIndex = int((trainingSetFactor + validationSetFactor) * blastomCount)
     start = validationStartIndex if validation else trainingStartIndex
     end = trainingStartIndex if validation else int(datasetSize/2)
 
-    for i in range(1, epochs + 1):
+    for i in range(4, epochs + 1):
         path = networkPath + 'epoch' + str(i) + '/'
         neuralNet = NeuralNetwork.load(path)
         results.append(test(neuralNet, start, end))
@@ -306,12 +307,11 @@ def printNetwork(path):
 
 def main():
     #testingProcedure()
-    trainingProcedure(True)
+    #trainingProcedure(False)
     #printNetwork('network_data/new_network/')
     #findClassificationLimit(13)
     #findClassificationLimitsForConfiguration('configuration7')
-    #testAllEpochs('configuration10', False)
-
+    testAllEpochs('configuration15', False)
 
 if __name__ == '__main__':
     main()

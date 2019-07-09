@@ -67,7 +67,7 @@ class NeuralNetwork():
 
     def calculateError(self, output, result):
         """
-            Calculate the error of a set of examples, given the correct results
+            Calculate the errors of a set of examples, given the correct results
             for the set.
         """
         errors = []
@@ -116,22 +116,28 @@ class NeuralNetwork():
                     len(blastomResults) - correctBlastoms]
 
 
-    def calculateClassificationLimit(blastomResults, otherResults, forceFP = False):
+    def calculateClassificationLimit(blastomResults, otherResults, forceFP = False, forPlotting = False):
         #find median without outliers?
         blastomAvarage = sum(blastomResults)/len(blastomResults)
         otherAvarage = sum(otherResults)/len(blastomResults)
         average = (blastomAvarage + otherAvarage)/ 2
-        difference = abs(blastomAvarage - otherAvarage)/100
+        difference = abs(blastomAvarage - otherAvarage)/1000
         top = max([max(otherResults), max(blastomResults)]) - difference
         limit = min([min(otherResults), min(blastomResults)]) + difference
         bestResults = [0,0,0]
         bestLimit = 0
         equalLimits = []
 
+        #for the purpuse of logging
+        resultsList = []
+        limitsList = []
+
         while limit < top:
 
             results = NeuralNetwork.getResultsForLimit\
                 (blastomResults, otherResults, limit)
+            resultsList.append([round(x/sum(results)*100, 2) for x in results])
+            limitsList.append(limit)
 
             isBetterResult = results[0] > bestResults[0]
             isEqual = results[0] == bestResults[0]
@@ -152,6 +158,8 @@ class NeuralNetwork():
 
             limit += difference
 
+        if forPlotting:
+            return (resultsList, limitsList)
 
 
         #if len(equalLimits) > 1:

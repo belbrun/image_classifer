@@ -2,8 +2,8 @@ import numpy as np
 import datautil
 from functions import getActivationFunction
 
-minWeight = -0.42
-maxWeight = 0.42
+minWeight = -0.5
+maxWeight = 0.5
 
 class Layer:
 
@@ -13,14 +13,14 @@ class Layer:
 
     def propagateForward(self, input):
         """
-            Use a forward propagation algorihm to get the layers output from
+            Use a forward propagation algorithm to get the layers output from
             input data
         """
         pass
 
     def propagateBackwards(self, errors):
         """
-            Use a backpropagation algorith of the layer to propagate the error
+            Use a backpropagation algorithm of the layer to propagate the error
             to the its preceding layer and correct weights of the layer if there
             are any.
         """

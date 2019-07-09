@@ -1,0 +1,6 @@
+avarage the picture with cluster size 3 // make a wider first layer of the network with stride equal to cluster size 
+make faster network to test 
+try until the classification rate on the training set drops
+change learning rate, drop, activation functions, base, indexes
+try calculating classifciation limit on the training set
+
