@@ -6,17 +6,7 @@ import matplotlib.pyplot as plt
 
 
 #TODO: get log results from configuration 10 and plot validation set results and training set results
-def getValidationResults(path):
-    log = datautil.readLog(path)
-    return parser.parseLinesForResults(log, 'VALIDATION RESULTS')
 
-def getTrainingResults(path):
-    log = datautil.readLog(path)
-    return parser.parseLinesForResults(log, '[')
-
-def getTestResults(path):
-    resultsString = datautil.readResults(path)
-    return  parser.parseLinesForResults(resultsString)
 
 
 def plot(title, xValues, data, xLabel = 'epohe', yLabel = 'postotci'):
@@ -43,8 +33,8 @@ def plotResultsByEpoch(path):
 
 def plotTrainingAndValidation(path):
     title = 'Postotak točne klasifikacije na skupu za validaciju i treniranje'
-    validationResults = getValidationResults(path + 'epoch9/')[0]
-    trainingResults = getTrainingResults(path + 'epoch9/')[0]
+    validationResults = datautil.getValidationResults(path + 'epoch9/')[0]
+    trainingResults = datautil.getTrainingResults(path + 'epoch9/')[0]
     xValues = list(range(1, len(validationResults) + 1))
     data = [
         (validationResults, 'Set za validaciju'),
@@ -56,7 +46,7 @@ def plotClassificationLimits(path, epoch):
     epochPath = path + 'epoch' + str(epoch) + '/'
     neuralNet = NeuralNetwork.load(epochPath)
     blastomResults, otherResults = \
-        parser.getEpochValidationOutputs(datautil.readLog(epochPath), epoch)
+        datautil.getEpochValidationOutputs(epochPath, epoch)
     results, limits = \
         NeuralNetwork.calculateClassificationLimit(blastomResults, otherResults, forPlotting = True)
     epochResults, epochFP, epochFN = parser.splitResults(results)

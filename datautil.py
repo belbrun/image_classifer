@@ -2,6 +2,7 @@ from PIL import Image
 import preprocessor as pp
 import numpy as np
 import os
+import parser
 
 #def loadImages
 
@@ -58,7 +59,20 @@ def getLayerIds(path):
             layerIds.append(file.read(4))
     return layerIds
 
+def getValidationResults(path):
+    log = readLog(path)
+    return parser.parseLinesForResults(log, 'VALIDATION RESULTS')
 
+def getTrainingResults(path):
+    log = readLog(path)
+    return parser.parseLinesForResults(log, '[')
+
+def getTestResults(path):
+    resultsString = readResults(path)
+    return  parser.parseLinesForResults(resultsString)
+
+def getEpochValidationOutputs(epochPath, epoch):
+    return parser.parseEpochValidationOutputs(readLog(epochPath), epoch)
 
 
 if __name__ == '__main__':

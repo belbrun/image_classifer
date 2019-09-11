@@ -21,7 +21,7 @@ def parseLinesForResults(lines, startString = None):
 
     return splitResults(results)
 
-def getEpochValidationOutputs(lines, epoch):
+def parseEpochValidationOutputs(lines, epoch):
     blastomResults = []
     otherResults = []
     for line in lines:
@@ -34,7 +34,7 @@ def getEpochValidationOutputs(lines, epoch):
 
     return (blastomResults, otherResults)
 
-def getResults(line):
+def parseResults(line):
     print(line)
     resultString = re.findall('\d+\.\d+\, \d+\.\d+\, \d+\.\d+', line)[0]
     splitResults = resultString.split(',')
