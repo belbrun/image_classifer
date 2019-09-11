@@ -49,7 +49,7 @@ def initializeNN():
     neuralNet.addLayer(FullyConnectedLayer(4, 10, Sigmoid()))
     neuralNet.addLayer(FullyConnectedLayer(1, 4, Sigmoid()))
 
-    return neuralNet
+    return aneuralNet
 
 
 def initializeNN2():
