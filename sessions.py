@@ -8,7 +8,7 @@ class Session:
         pass
 
     def start(self):
-        pass
+        passd
 
     def initializeNN(self, neuralNet):
         self.neuralNet = neuralNet
@@ -19,6 +19,7 @@ class Session:
     def getEntity(index, isBlastom):
         return datautil.getInput(index, isBlastom,
             datasetPath, gray, shape, rotations, avaraged)
+
 
 class TrainingSession(Session):
 
@@ -132,8 +133,30 @@ class TrainingSession(Session):
 
 class TestingSession(Session):
 
-    def __init__(self, startIndex, endIndex):
+    def __init__(self, startIndex, endIndex, numOfEpochs = 1):
         self.startIndex = startIndex
         self.endIndex = endIndex
+        self.numOfEpochs = numOfEpochs
+
+    def testEntity(self, index, isBlastom):
+        index += 0 if isBlastom else blastomCount
+        return self.neuralNet.classify(getEntity(index, isBlastom)[0])
 
     def start(self):
+        counts = [0,0,0] #correct, false positives, false negatives
+        for index in range(startIndex, endIndex + 1):
+            correct = bool(self.testEntity(index, True))
+
+            if correct:
+                counts[0] += 1
+            else:
+                counts[2] += 1
+            print('TEST----Example: ', index, '_1 Output: ', correct, ' Overall: ', counts)
+
+            correct = not bool(self.testEntity(index, False))
+            if correct:
+                counts[0] += 1
+            else:
+                counts[1] += 1
+            print('TEST----Example: ', index, '_0 Output: ', correct, ' Overall: ', counts)
+        return [round(x/sum(counts)*100, 2) for x in counts]
