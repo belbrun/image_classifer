@@ -34,7 +34,7 @@ class Layer:
 
     def load(path):
         """
-            Load the layer data from the given path and create a layer from it.
+            Load the layer data from the given path and return a layer object.
         """
         pass
 
@@ -109,6 +109,8 @@ class ConvolutionLayer(Layer):
         return self.activationFunction.activate(self.z)
 
 
+
+
     def propagateBackwards(self, errors, learningRate):
 
         weightErrors = [[]] * self.filterNumber
@@ -144,6 +146,8 @@ class ConvolutionLayer(Layer):
 
         return previousErrors
 
+
+
     def correctWeights(self, weightErrors, biasErrors, learningRate):
         """
             Correct the values of the layers filters using given error values and
@@ -162,6 +166,8 @@ class ConvolutionLayer(Layer):
 
             self.bias[index] -= learningRate * biasErrors[index]
 
+
+
     def save(self, path):
         datautil.saveData(path, ['CONV', self.filterNumber, self.filterSize,\
         self.stride, self.inputDepth, self.activationFunction.getName()])
@@ -169,6 +175,8 @@ class ConvolutionLayer(Layer):
             for (j, filter) in enumerate(filterGroup):
                 np.save(path + 'g' + str(i) + 'f' + str(j), filter)
         np.save(path + 'b', self.bias)
+
+
 
     def load(path):
         data = datautil.loadData(path)
@@ -182,6 +190,7 @@ class ConvolutionLayer(Layer):
         bias = np.load(path +'b.npy')
         return ConvolutionLayer(filterNumber, filterSize, stride, activationFunction,\
              inputDepth, filters, bias)
+
 
 
 class ExtremumPoolLayer(Layer):

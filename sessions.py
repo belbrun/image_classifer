@@ -1,30 +1,28 @@
-
+from network import *
+from layers import *
+from datautil import *
 
 class Session:
 
-    def __init__(self, neuralNet):
-        self.neuralNet = neuralNet
-
-    def start():
+    def __init__(self):
         pass
 
-    def fillIndex(index):
-        if index < 10:
-            return 'Im00' + str(index)
-        elif index < 100:
-            return 'Im0' + str(index)
-        else:
-            return 'Im' + str(index)
+    def start(self):
+        pass
+
+    def initializeNN(self, neuralNet):
+        self.neuralNet = neuralNet
+
+    def loadNeuralNet(self, path):
+        self.neuralNet = NeuralNetwork.load(path)
 
     def getEntity(index, isBlastom):
-        name = fillIndex(index) + '_1.tif' if isBlastom  else \
-        fillIndex(index) + '_0.tif'
-        return datautil.
-            getInput(name, datasetPath, gray, shape, rotations, avaraged)
+        return datautil.getInput(index, isBlastom,
+            datasetPath, gray, shape, rotations, avaraged)
 
 class TrainingSession(Session):
 
-    def __init__(datasetSize, trainingSetFactor, validationSetFactor
+    def __init__(self, datasetSize, trainingSetFactor, validationSetFactor
             learningRate = 0.01, drop = 1, startEpoch = 0, epochs = 0
             gray = False, shape = False, rotations = False, avaraged = False):
         self.startEpoch = startEpoch
@@ -39,13 +37,7 @@ class TrainingSession(Session):
         self.rotations = rotations
         self.avaraged = avaraged
 
-    def initializeNN(neuralNet):
-        self.neuralNet = neuralNet
-
-    def loadNeuralNet(path):
-        self.neuralNet = NeuralNetwork.load(path)
-
-    def trainOnEntity(neuralNet, index, isBlastom, learningRate):
+    def trainOnEntity(self, neuralNet, index, isBlastom, learningRate):
         results = blastomResults if isBlastom else othersResults
         index += 0 if isBlastom else blastomCount
         errors = []
@@ -53,15 +45,15 @@ class TrainingSession(Session):
             errors.append(neuralNet.train(rotation, results, learningRate))
         return errors
 
-    def feedEntity(neuralNet, index, isBlastom):
+    def feedEntity(self, neuralNet, index, isBlastom):
         results = blastomResults if isBlastom else othersResults
         index += 0 if isBlastom else blastomCount
         return neuralNet.feedForError(getEntity(index, isBlastom)[0], results)
 
-    def train():
+    def train(self):
         avgError = 0
         for index in range(1, self.trainingSetSize):
-            errors = trainOnEntity(self.neuralNet, index, True, self.learningRate)
+            errors = self.trainOnEntity(self.neuralNet, index, True, self.learningRate)
             rotationDirections = ['U', 'R', 'D', 'L'] if self.rotations else ['U']
 
             for r, rotation in enumerate(rotationDirections):
@@ -69,7 +61,7 @@ class TrainingSession(Session):
                 self.trainingLog.append(formatMessage('TRAINING', i, errors[r], index))
                 print(self.trainingLog[-1])
 
-            errors = trainOnEntity(neuralNet, index, False, learningRate)
+            errors = self.trainOnEntity(neuralNet, index, False, learningRate)
             for r, rotation in enumerate(rotationDirections):
                 self.trainingLog.append(formatMessage('TRAINING', i, errors[r], index, False))
                 print(self.trainingLog[-1])
@@ -79,25 +71,25 @@ class TrainingSession(Session):
              avgError/(trainingSetSize*2), isAvarage = True))
         print(self.trainingLog[-1])
 
-    def validate():
+    def validate(self):
 
         avgError = 0
         blastomResults = []
         otherResults = []
 
         for index in range(self.trainingSetSize, self.trainingSetSize + self.validationSetSize):
-            output, error = feedEntity(neuralNet, index, True)
+            output, error = self.feedEntity(neuralNet, index, True)
             blastomResults.append(output[0])
             avgError += abs(error)
             self.trainingLog.append(formatMessage('VALIDATION', i, error, index, True, output))
             print(self.trainingLog[-1])
-            output, error = feedEntity(neuralNet, index, False)
+            output, error = self.feedEntity(neuralNet, index, False)
             otherResults.append(output[0])
             self.trainingLog.append(formatMessage('VALIDATION', i, error, index, False, output))
             print(self.trainingLog[-1])
             avgError += abs(error)
 
-    def process(epoch):
+    def process(self, epoch):
         limit, results = \
         NeuralNetwork.calculateClassificationLimit(blastomResults, otherResults)
         currentAvgError =  avgError/(validationSetSize*2)
@@ -119,7 +111,7 @@ class TrainingSession(Session):
         [str(gray), str(avaraged), str(shape), str(trainingSetFactor), \
         str(validationSetFactor)])
 
-    def start():
+    def start(self):
 
         print('Training set size: ', self.trainingSetSize, 'validationSetSize: ', self.validationSetSize)
 
@@ -131,9 +123,17 @@ class TrainingSession(Session):
         lastAvgError = None
         for i in range(self.startEpoch, self.epochs + 1):
 
-            train()
-            validate()
-            process(i)
+            self.train()
+            self.validate()
+            self.process(i)
             learningRate *= drop
 
         return self.trainingLog
+
+class TestingSession(Session):
+
+    def __init__(self, startIndex, endIndex):
+        self.startIndex = startIndex
+        self.endIndex = endIndex
+
+    def start(self):

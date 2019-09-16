@@ -10,7 +10,17 @@ import parser
 #add rest of the logic to util, preprocessor, a possible parser
 
 
+def fillIndex(index):
+    if index < 10:
+        return 'Im00' + str(index)
+    elif index < 100:
+        return 'Im0' + str(index)
+    else:
+        return 'Im' + str(index)
 
+def getName(index, isBlastom):
+    return fillIndex(index) + '_1.tif' if isBlastom  else \
+    fillIndex(index) + '_0.tif'
 
 def getInput(name, path = 'dataset/2/ALL_IDB2/img/', gray = False, shape = None,\
     rotations = False, avaraged = False):
