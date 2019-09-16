@@ -8,7 +8,7 @@ class Session:
         pass
 
     def start(self):
-        passd
+        pass
 
     def setNeuralNet(self, neuralNet):
         self.neuralNet = neuralNet
@@ -138,18 +138,24 @@ class TrainingSession(Session):
 
 class TestingSession(Session):
 
-    def __init__(self, startIndex, endIndex, numOfEpochs = 1):
+    def __init__(self, datasetPath, startIndex, endIndex, numOfEpochs = 1,
+        gray = False, shape = None,  rotations = False, avaraged = False):
+        self.datasetPath = datasetPath
         self.startIndex = startIndex
         self.endIndex = endIndex
         self.numOfEpochs = numOfEpochs
+        self.gray = gray
+        self.shape = shape
+        self.rotations = rotations
+        self.avaraged = avaraged
 
     def testEntity(self, index, isBlastom):
         index += 0 if isBlastom else blastomCount
-        return self.neuralNet.classify(getEntity(index, isBlastom)[0])
+        return self.neuralNet.classify(self.getEntity(index, isBlastom)[0])
 
     def start(self):
         counts = [0,0,0] #correct, false positives, false negatives
-        for index in range(startIndex, endIndex + 1):
+        for index in range(self.startIndex, self.endIndex + 1):
             correct = bool(self.testEntity(index, True))
 
             if correct:

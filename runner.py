@@ -11,14 +11,11 @@ trainingSetFactor = 0.5
 validationSetFactor = 0.2
 testSetFactor = 0.3
 
-
 #training factors
 drop = 1
 learningRate = 0.002
 epochs = 15
 startEpoch = 7
-
-
 
 #preprocessing factors
 gray = True
@@ -26,13 +23,46 @@ avaraged = True
 shape = 200,200
 rotations = True
 
-#blastomResults = np.array([1, 0])
-#othersResults = np.array([0,1])
 blastomResults = np.array([1])
 othersResults = np.array([0])
 
 datasetPath = 'dataset/2/ALL_IDB2/img/'
 networkPath = 'network_data/configuration15/'
+
+def main():
+
+    #train or test
+
+    #train()
+    test()
+
+def train():
+    #create training session
+    session = TrainingSession(datasetSize, trainingSetFactor, validationSetFactor,
+        blastomResults, othersResults, datasetPath, learningRate, drop,
+        startEpoch, epochs, gray, shape, rotations, avaraged)
+
+    #initialize neural network
+    session.setNeuralNet(initializeNN())
+
+    #load neural network
+    #session.loadNeuralNet(networkPath)
+
+    #start training session
+    trainingLog = session.start()
+
+def test():
+    #create testing session
+    session = TestingSession(datasetPath, 100, 130)
+
+    #initialize neural network
+    session.setNeuralNet(initializeNN())
+
+    #load neural network
+    #session.loadNeuralNet(networkPath)
+
+    results = session.start()
+
 
 def initializeNN():
     neuralNet = NeuralNetwork()
@@ -56,32 +86,6 @@ def initializeNN():
     neuralNet.addLayer(FullyConnectedLayer(1, 4, Sigmoid()))
 
     return neuralNet
-
-def train():
-    #create training session
-    session = TrainingSession(datasetSize, trainingSetFactor, validationSetFactor,
-        blastomResults, othersResults, datasetPath, learningRate, drop,
-        startEpoch, epochs, gray, shape, rotations, avaraged)
-
-    #initialize neural network
-    session.setNeuralNet(initializeNN())
-
-    #load neural network
-    #session.loadNeuralNet(networkPath)
-
-    #start training session
-    trainingLog = session.start()
-
-def test():
-    pass
-
-
-def main():
-
-    #train or test
-
-    train()
-    #test()
 
 if __name__ == '__main__':
     main()
