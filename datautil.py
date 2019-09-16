@@ -22,9 +22,10 @@ def getName(index, isBlastom):
     return fillIndex(index) + '_1.tif' if isBlastom  else \
         fillIndex(index) + '_0.tif'
 
-def getInput(name, path = 'dataset/2/ALL_IDB2/img/', gray = False, shape = None,\
-    rotations = False, avaraged = False):
+def getInput(index, isBlastom, path = 'dataset/2/ALL_IDB2/img/', gray = False,
+        shape = None, rotations = False, avaraged = False):
 
+    name = getName(index, isBlastom)
     imageAsArrays = pp.getImageAsArrays(name, path, gray, shape, rotations)
     output = []
 

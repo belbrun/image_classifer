@@ -41,25 +41,26 @@ def getImageAsArrays(name, path, gray = False, shape = None, rotations = False):
     else :
         imageAsArrays.append(np.array(processImage(image, gray, shape)))
 
-    return imageAsArraysdef getImageFromArrays(arrays, gray = False):
+    return imageAsArrays
 
-        imageArray = None
-        type = None
+def  getImageFromArrays(arrays, gray = False):
 
-        if gray :
-            type = 'L'
-            imageArray = arrays[0]*255
-        else :
-            type = 'RGB'
-            redArray,greenArray,blueArray = arrays[0]*255,arrays[1]*255,arrays[2]*255
-            imageArray = np.empty((redArray.shape[0], redArray.shape[1], 3))
-            for i in range(0, redArray.shape[0]):
-                for j in range(0, redArray.shape[1]):
-                    imageArray[i,j] = \
-                        np.array([redArray[i,j], greenArray[i,j], blueArray[i,j]])
-        image = Image.fromarray(imageArray.astype('uint8'), type)
+    imageArray = None
+    type = None
 
-        return image
+    if gray :
+        type = 'L'
+        imageArray = arrays[0]*255
+    else :
+        type = 'RGB'
+        redArray,greenArray,blueArray = arrays[0]*255,arrays[1]*255,arrays[2]*255
+        imageArray = np.empty((redArray.shape[0], redArray.shape[1], 3))
+        for i in range(0, redArray.shape[0]):
+            for j in range(0, redArray.shape[1]):
+                imageArray[i,j] = \
+                    np.array([redArray[i,j], greenArray[i,j], blueArray[i,j]])
+    image = Image.fromarray(imageArray.astype('uint8'), type)
+    return image
 
 
 def getImageFromArrays(arrays, gray = False):

@@ -10,39 +10,44 @@ class Session:
     def start(self):
         passd
 
-    def initializeNN(self, neuralNet):
+    def setNeuralNet(self, neuralNet):
         self.neuralNet = neuralNet
 
     def loadNeuralNet(self, path):
         self.neuralNet = NeuralNetwork.load(path)
 
-    def getEntity(index, isBlastom):
-        return datautil.getInput(index, isBlastom,
-            datasetPath, gray, shape, rotations, avaraged)
+    def getEntity(self, index, isBlastom):
+        return datautil.getInput(index, isBlastom, self.datasetPath,
+            self.gray, self.shape, self.rotations, self.avaraged)
 
 
 class TrainingSession(Session):
 
-    def __init__(self, datasetSize, trainingSetFactor, validationSetFactor
-            learningRate = 0.01, drop = 1, startEpoch = 0, epochs = 0
-            gray = False, shape = False, rotations = False, avaraged = False):
+    def __init__(self, datasetSize, trainingSetFactor, validationSetFactor,
+            blastomResults, otherResults, datasetPath, learningRate = 0.01,
+            drop = 1, startEpoch = 0, epochs = 0, gray = False, shape = False,
+            rotations = False, avaraged = False):
         self.startEpoch = startEpoch
         self.epochs = epochs
         self.drop = drop
         self.learningRate = learningRate
         self.trainingLog = []
+        self.datasetPath = datasetPath
+        self.datasetSize = datasetSize
         self.trainingSetSize = int(round(datasetSize * trainingSetFactor / 2))
         self.validationSetSize = int(round(datasetSize * validationSetFactor/2))
         self.gray = gray
         self.shape = shape
         self.rotations = rotations
         self.avaraged = avaraged
+        self.blastomResults = blastomResults
+        self.otherResults = otherResults
 
     def trainOnEntity(self, neuralNet, index, isBlastom, learningRate):
-        results = blastomResults if isBlastom else othersResults
+        results = self.blastomResults if isBlastom else self.othersResults
         index += 0 if isBlastom else blastomCount
         errors = []
-        for rotation in getEntity(index, isBlastom):
+        for rotation in self.getEntity(index, isBlastom):
             errors.append(neuralNet.train(rotation, results, learningRate))
         return errors
 
