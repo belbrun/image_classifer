@@ -57,10 +57,10 @@ def test():
         rotations, avaraged)
 
     #initialize neural network
-    session.setNeuralNet(initializeNN())
+    #session.setNeuralNet(initializeNN())
 
     #load neural network
-    #session.loadNeuralNet(networkPath)
+    session.loadNeuralNet(networkPath, False)
 
     results = session.start()
 

@@ -1,3 +1,5 @@
+
+import limitcalculator as calc
 from network import *
 from layers import *
 from datautil import *
@@ -13,8 +15,8 @@ class Session:
     def setNeuralNet(self, neuralNet):
         self.neuralNet = neuralNet
 
-    def loadNeuralNet(self, path):
-        self.neuralNet = NeuralNetwork.load(path)
+    def loadNeuralNet(self, path, loadConfig = True):
+        self.neuralNet = NeuralNetwork.load(path, loadConfig)
 
     def getEntity(self, index, isBlastom):
         return datautil.getInput(index, isBlastom, self.datasetPath,
@@ -97,7 +99,7 @@ class TrainingSession(Session):
 
     def process(self, epoch):
         limit, results = \
-        NeuralNetwork.calculateClassificationLimit(blastomResults, otherResults)
+        calc.calculateClassificationLimit(blastomResults, otherResults)
         currentAvgError =  avgError/(validationSetSize*2)
         self.trainingLog.append\
         ('VALIDATION RESULTS : ' + str(results) + 'LIMIT: ' + str(limit))
