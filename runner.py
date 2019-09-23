@@ -53,7 +53,8 @@ def train():
 
 def test():
     #create testing session
-    session = TestingSession(datasetPath, 100, 130)
+    session = TestingSession(datasetPath, 100, 130, blastomCount, 1, gray, shape,
+        rotations, avaraged)
 
     #initialize neural network
     session.setNeuralNet(initializeNN())

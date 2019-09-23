@@ -138,11 +138,12 @@ class TrainingSession(Session):
 
 class TestingSession(Session):
 
-    def __init__(self, datasetPath, startIndex, endIndex, numOfEpochs = 1,
+    def __init__(self, datasetPath, startIndex, endIndex, blastomCount, numOfEpochs = 1,
         gray = False, shape = None,  rotations = False, avaraged = False):
         self.datasetPath = datasetPath
         self.startIndex = startIndex
         self.endIndex = endIndex
+        self.blastomCount = blastomCount
         self.numOfEpochs = numOfEpochs
         self.gray = gray
         self.shape = shape
@@ -150,7 +151,7 @@ class TestingSession(Session):
         self.avaraged = avaraged
 
     def testEntity(self, index, isBlastom):
-        index += 0 if isBlastom else blastomCount
+        index += 0 if isBlastom else self.blastomCount
         return self.neuralNet.classify(self.getEntity(index, isBlastom)[0])
 
     def start(self):

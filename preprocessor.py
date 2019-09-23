@@ -63,25 +63,6 @@ def  getImageFromArrays(arrays, gray = False):
     return image
 
 
-def getImageFromArrays(arrays, gray = False):
-
-    imageArray = None
-    type = None
-
-    if gray :
-        type = 'L'
-        imageArray = arrays[0]*255
-    else :
-        type = 'RGB'
-        redArray,greenArray,blueArray = arrays[0]*255,arrays[1]*255,arrays[2]*255
-        imageArray = np.empty((redArray.shape[0], redArray.shape[1], 3))
-        for i in range(0, redArray.shape[0]):
-            for j in range(0, redArray.shape[1]):
-                imageArray[i,j] = \
-                    np.array([redArray[i,j], greenArray[i,j], blueArray[i,j]])
-    image = Image.fromarray(imageArray.astype('uint8'), type)
-
-    return image
 
 def processImage(image, gray, shape):
     if gray:
