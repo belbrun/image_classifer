@@ -39,3 +39,15 @@ def parseResults(line):
     resultString = re.findall('\d+\.\d+\, \d+\.\d+\, \d+\.\d+', line)[0]
     splitResults = resultString.split(',')
     return (float(splitResults[0]), float(splitResults[1]), float(splitResults[2]))
+
+
+def generateName(index, isBlastom):
+
+    if index < 10:
+        name = 'Im00' + str(index)
+    elif index < 100:
+        name = 'Im0' + str(index)
+    else:
+        name = 'Im' + str(index)
+
+    return name + '_1.tif' if isBlastom else  '_0.tif'
