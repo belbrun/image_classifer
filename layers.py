@@ -6,6 +6,9 @@ minWeight = -0.5
 maxWeight = 0.5
 
 class Layer:
+    """
+        Abstract class that models a basic neural netork layer.
+    """
 
     def __init__(self, activationFunction):
         self.activationFunction = activationFunction
@@ -41,6 +44,10 @@ class Layer:
 
 class ConvolutionLayer(Layer):
 
+    """
+        Layer type that uses convolution with a set of filters to create a
+        vector of feature maps from a 2D map or a 3D volume.
+    """
 
     def __init__(self, filterNumber, filterSize, stride, activationFunction,\
                  inputDepth, filters = None, bias = None):
@@ -195,6 +202,11 @@ class ConvolutionLayer(Layer):
 
 class ExtremumPoolLayer(Layer):
 
+    """
+        Layer type that reduces the activation maps dimensions by taking the
+        biggest or smallest value from a cluster.
+    """
+
     comparationFunctions = { 'max': lambda x,y: x > y, 'min': lambda x,y: x < y, 'min\n': lambda x,y: x < y, "" : lambda x,y: x < y }
 
     def __init__(self, clusterSize = 2, type = 'min'):
@@ -265,6 +277,9 @@ class ExtremumPoolLayer(Layer):
 
 class FlatteningLayer(Layer):
 
+    """
+        Layer type that redimensions a 2 or 3 dimensional entry into a 1D vector.
+    """
     def __init__(self):
         self.inputSize = 0
         self.inputDepth = 0
@@ -304,6 +319,10 @@ class FlatteningLayer(Layer):
 
 
 class FullyConnectedLayer(Layer):
+
+    """
+        Layer type that uses a vector of weights to multiply the input vector.
+    """
 
     def __init__(self, size, inputSize, activationFunction,  \
                     weights = None, bias = None, softmax = False):
