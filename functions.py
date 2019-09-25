@@ -115,12 +115,6 @@ activationFunctions = {'sig':Sigmoid(), 'relu':ReLU(), 'lrelu': LeakyReLU(), \
 'tanh': TanHiperbolic(), 'smax': SoftMax(), 'ratio': RatioFunction()}
 
 
-
-def simpleCost(outputValue, correctValue):
-    print('O: ', outputValue, ' C: ', correctValue)
-    #print('Err: ', correctValue - outputValue)
-    return (correctValue - outputValue)/correctValue
-
 class CrossEntropy(Function):
 
     def activate(self, outputValue, correctValue):

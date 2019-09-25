@@ -2,77 +2,28 @@ from PIL import Image
 import preprocessor as pp
 import numpy as np
 import os
+import parser
 
 #def loadImages
 
 #TODO: refactor datautil module to interact only with data
 #add rest of the logic to util, preprocessor, a possible parser
 
-def splitToComponents(pixelArray):
-    output = []
-    rows,columns = pixelArray.shape[0], pixelArray.shape[1]
-    redArray = np.empty((rows,columns))
-    greenArray = np.empty((rows,columns))
-    blueArray = np.empty((rows,columns))
-
-    for i in range(0, columns-1):
-        for j in range(0, rows-1):
-            redArray[i,j] = pixelArray[i,j,0]
-            greenArray[i,j] = pixelArray[i,j,1]
-            blueArray[i,j] = pixelArray[i,j,2]
-
-    return [redArray, greenArray, blueArray]
 
 
-def getInput(name, path = 'dataset/2/ALL_IDB2/img/', gray = False, shape = None,\
-    rotations = False, avaraged = False):
+def getInput(index, isBlastom, path = 'dataset/2/ALL_IDB2/img/', gray = False,
+        shape = None, rotations = False, avaraged = False):
 
-    imageAsArrays = getImageAsArrays(name, path, gray, shape, rotations)
+    name = parser.generateName(index, isBlastom)
+    imageAsArrays = pp.getImageAsArrays(name, path, gray, shape, rotations)
     output = []
 
     for rotation in imageAsArrays:
-        output.append(processArrays(rotation, gray, avaraged))
+        output.append(pp.processArrays(rotation, gray, avaraged))
 
     return output
 
-def processArrays(pixelArrays, gray = False, avaraged = False):
-    output = []
 
-    if gray:
-        output.append(pixelArrays)
-    else:
-        output.extend(splitToComponents(pixelArrays))
-
-    if avaraged:
-        output = pp.avaragePool(output)
-
-    return pp.normalize(output)
-
-
-def getImageAsArrays(name, path, gray = False, shape = None, rotations = False):
-    image = Image.open(path + name, 'r')
-    imageAsArrays = []
-
-    if rotations:
-        images = pp.getRotations(image)
-        for image in images:
-            imageAsArrays.append(np.array(processImage(image, gray, shape)))
-    else :
-        imageAsArrays.append(np.array(processImage(image, gray, shape)))
-
-    return imageAsArrays
-
-def processImage(image, gray, shape):
-    if gray:
-        image = pp.toGrayScale(image)
-    if shape:
-        image = pp.crop(image, shape)
-    return image
-
-def saveData(path, data):
-    with open(path + 'config.txt', 'w+') as file:
-        for information in data:
-            file.write(str(information)+'|')
 
 def loadData(path, old = False):
     name = 'old_config.txt' if old else 'config.txt'
@@ -108,25 +59,20 @@ def getLayerIds(path):
             layerIds.append(file.read(4))
     return layerIds
 
-def getImageFromArrays(arrays, gray = False):
+def getValidationResults(path):
+    log = readLog(path)
+    return parser.parseLinesForResults(log, 'VALIDATION RESULTS')
 
-    imageArray = None
-    type = None
+def getTrainingResults(path):
+    log = readLog(path)
+    return parser.parseLinesForResults(log, '[')
 
-    if gray :
-        type = 'L'
-        imageArray = arrays[0]*255
-    else :
-        type = 'RGB'
-        redArray,greenArray,blueArray = arrays[0]*255,arrays[1]*255,arrays[2]*255
-        imageArray = np.empty((redArray.shape[0], redArray.shape[1], 3))
-        for i in range(0, redArray.shape[0]):
-            for j in range(0, redArray.shape[1]):
-                imageArray[i,j] = \
-                    np.array([redArray[i,j], greenArray[i,j], blueArray[i,j]])
-    image = Image.fromarray(imageArray.astype('uint8'), type)
+def getTestResults(path):
+    resultsString = readResults(path)
+    return  parser.parseLinesForResults(resultsString)
 
-    return image
+def getEpochValidationOutputs(epochPath, epoch):
+    return parser.parseEpochValidationOutputs(readLog(epochPath), epoch)
 
 
 if __name__ == '__main__':
