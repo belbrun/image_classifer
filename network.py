@@ -106,7 +106,7 @@ class NeuralNetwork():
         print('O: ', output, 'C: ', results)
         errors = self.calculateError(output, results)
         self.learn(errors, learningRate)
-        return errors 
+        return errors
 
 
 

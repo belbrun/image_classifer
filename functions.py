@@ -4,11 +4,19 @@ def getActivationFunction(id):
     return activationFunctions[id]
 
 class Function:
-
+    """
+        Model the requirements of a function in a neural network.
+    """
     def activate(self, data):
+        """
+            Calculate the output of a function with given input data.
+        """
         pass
 
-    def derived():
+    def derived(self, x):
+        """
+            Calculate the output of the functions derivative for given arguments.
+        """
         pass
 
     def forEachLayer(self, data, function):
@@ -110,6 +118,7 @@ class RatioFunction(Function):
 
     def getName(self):
         return 'ratio'
+
 
 activationFunctions = {'sig':Sigmoid(), 'relu':ReLU(), 'lrelu': LeakyReLU(), \
 'tanh': TanHiperbolic(), 'smax': SoftMax(), 'ratio': RatioFunction()}

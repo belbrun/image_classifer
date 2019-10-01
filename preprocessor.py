@@ -2,6 +2,10 @@ import numpy as np
 from PIL import Image
 
 def splitToComponents(pixelArray):
+    """
+        Split an array of RGB values in three arrays containing
+        red, green and blue pixel values respectively.
+    """
     output = []
     rows,columns = pixelArray.shape[0], pixelArray.shape[1]
     redArray = np.empty((rows,columns))
@@ -17,6 +21,10 @@ def splitToComponents(pixelArray):
     return [redArray, greenArray, blueArray]
 
 def processArrays(pixelArrays, gray = False, avaraged = False):
+    """
+        Normalize given arrays of red, green and blue components. Avarage pool
+        the images pixels if avaraged is true.
+    """
     output = []
 
     if gray:
@@ -31,6 +39,12 @@ def processArrays(pixelArrays, gray = False, avaraged = False):
 
 
 def getImageAsArrays(name, path, gray = False, shape = None, rotations = False):
+    """
+        Load image with a given path and name. Process the image :
+        turn to grayscale (set gray to True), specify the shape with a tuple
+        containing the target dimensions, get all the 90 degree rotations (set
+        rotations to True).
+    """
     image = Image.open(path + name, 'r')
     imageAsArrays = []
 
@@ -42,6 +56,8 @@ def getImageAsArrays(name, path, gray = False, shape = None, rotations = False):
         imageAsArrays.append(np.array(processImage(image, gray, shape)))
 
     return imageAsArrays
+
+
 
 def  getImageFromArrays(arrays, gray = False):
 
@@ -65,6 +81,9 @@ def  getImageFromArrays(arrays, gray = False):
 
 
 def processImage(image, gray, shape):
+    """
+        Turn to grayscale and/or crop.
+    """
     if gray:
         image = toGrayScale(image)
     if shape:
@@ -78,7 +97,9 @@ def saveData(path, data):
 
 
 def avaragePool(pixelArrays, clusterSize = 2, stride = 2):
-
+    """
+        Avarage pool an array with a given cluster size and stride.
+    """
     inputShape = pixelArrays[0].shape
     outputShape = (int((inputShape[0] - clusterSize)/stride) + 1,\
                 int((inputShape[1] - clusterSize)/stride) + 1)
@@ -102,30 +123,43 @@ def avaragePool(pixelArrays, clusterSize = 2, stride = 2):
 
     return output
 
-def normalize(images):
-    normalizedImages = []
-    for image in images:
+def normalize(arrays):
+    """
+        Normalize a list of arrays using min-max normalization.
+    """
+    normalizedArrays = []
+    for array in arrays:
         #print('Image: ', image)
-        max = np.max(image)
-        min = np.min(image)
+        max = np.max(array)
+        min = np.min(array)
         #print('MAXMIN: ', max, min)
 
-        normalizedImages.append((image - min)/(max-min))
+        normalizedArrays.append((array - min)/(max-min))
         #print('NORML', normalizedImages)
-    return normalizedImages
+    return normalizedArrays
 
 
 def toGrayScale(image):
+    """
+        Turn an image to black and white (grayscale).
+    """
     return image.convert('L')
 
 
 def crop(image, shape):
-
+    """
+        Crop an image to given touple of dimensions.
+    """
     height, width = image.size
     cropHeight, cropWidth = (height-shape[0])//2, (width-shape[1])//2
     return image.crop((cropHeight, cropWidth, height-cropHeight, width-cropWidth))
 
+
 def getRotations(image):
+    """
+        Return a list containing an original image and three 90 degree rotations
+        of the original.
+    """
     outputs = []
     for i in range(0, 360, 90):
         outputs.append(image.rotate(i))
