@@ -66,7 +66,7 @@ def  getImageFromArrays(arrays, gray = False):
 
     if gray :
         type = 'L'
-        imageArray = arrays[0]*255
+        imageArray = arrays[0]
     else :
         type = 'RGB'
         redArray,greenArray,blueArray = arrays[0]*255,arrays[1]*255,arrays[2]*255

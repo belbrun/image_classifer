@@ -2,9 +2,10 @@ from functions import *
 from layers import *
 import datautil
 
+
 class NeuralNetwork():
 
-    def __init__(self, errorFunction = CrossEntropy(), classificationLimit = 0.5):
+    def __init__(self, errorFunction=CrossEntropy(), classificationLimit=0.5):
         """
             Default constructor.
             Uses cross entropy as a default error function
@@ -13,7 +14,6 @@ class NeuralNetwork():
         self.errorFunction = errorFunction
         self.layers = []
         self.classificationLimit = classificationLimit
-
 
     def addLayer(self, layer):
         """
@@ -29,7 +29,7 @@ class NeuralNetwork():
 
         for i, layer in enumerate(self.layers):
             x = layer.propagateForward(x)
-            #if i == 3:
+            # if i == 3:
             #    print(layer, x)
 
         return x
@@ -81,7 +81,7 @@ class NeuralNetwork():
         overallError = 0
         for i in range(0, len(outputs)):
             for error in self.calculateError(outputs[i], results[i]):
-                overallError += error #absoulte ?
+                overallError += error  #absoulte ?
 
         return error
 

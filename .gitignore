@@ -1,4 +1,5 @@
 *.pyc
 dataset
 network_data
+mnist
 __pycache__
