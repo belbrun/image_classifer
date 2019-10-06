@@ -120,7 +120,7 @@ class RatioFunction(Function):
         return 'ratio'
 
 
-activationFunctions = {'sig':Sigmoid(), 'relu':ReLU(), 'lrelu': LeakyReLU(), \
+activationFunctions = {'sig': Sigmoid(), 'relu': ReLU(), 'lrelu': LeakyReLU(), \
 'tanh': TanHiperbolic(), 'smax': SoftMax(), 'ratio': RatioFunction()}
 
 
@@ -136,7 +136,7 @@ class CrossEntropy(Function):
         return (1-correctValue)/(1-outputValue) - correctValue/outputValue
 
     def getName(self):
-        return 'ratio'
+        return 'centropy'
 
 if __name__ == '__main__':
     x = RatioFunction()

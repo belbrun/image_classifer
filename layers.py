@@ -7,7 +7,7 @@ maxWeight = 0.5
 
 class Layer:
     """
-        Abstract class that models a basic neural netork layer.
+        Abstract class that models a basic neural network layer.
     """
 
     def __init__(self, activationFunction):
@@ -17,14 +17,14 @@ class Layer:
     def propagateForward(self, input):
         """
             Use a forward propagation algorithm to get the layers output from
-            input data
+            input data.
         """
         pass
 
     def propagateBackwards(self, errors):
         """
-            Use a backpropagation algorithm of the layer to propagate the error
-            to the its preceding layer and correct weights of the layer if there
+            Use the layers backpropagation algorithm to calculate the error
+            of the preceding layer, correct layers weights if there
             are any.
         """
         pass
@@ -38,6 +38,7 @@ class Layer:
     def load(path):
         """
             Load the layer data from the given path and return a layer object.
+            Can only load data saved with the layers save method.
         """
         pass
 
@@ -51,7 +52,7 @@ class ConvolutionLayer(Layer):
 
     def __init__(self, filterNumber, filterSize, stride, activationFunction,\
                  inputDepth, filters = None, bias = None):
-
+                 
         if filters is not None:
             self.filters = filters
         else:
