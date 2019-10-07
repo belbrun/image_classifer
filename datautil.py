@@ -36,7 +36,7 @@ def getEntity(index, test = False):
     path = 'mnist/'
     image = 't10k-images-idx3-ubyte' if test else 'train-images-idx3-ubyte'
     label = image.replace('images-idx3', 'labels-idx1')
-    return (getImage(open(path+image, 'rb'), index), \
+    return ([getImage(open(path+image, 'rb'), index)], \
             getLabel(open(path+label, 'rb'), index))
 
 

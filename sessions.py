@@ -1,8 +1,9 @@
 
-import limitcalculator as calc
+import numpy as np
 from network import *
 from layers import *
 from datautil import *
+
 
 class Session:
 
@@ -19,7 +20,29 @@ class Session:
         self.neuralNet = NeuralNetwork.load(path, loadConfig)
 
     def getEntity(self, index, test):
-        return datautil.getEntity(index, test)
+        entity, label = datautil.getEntity(index, test)
+        return (entity, self.convertLabel(label))
+
+    def convertLabel(self, label):
+        """
+            Create a numpy array containing a correct classification result for
+            a given label.
+        """
+        resultArray = np.zeros(10)
+        resultArray[int(label)] = 1
+        return resultArray
+
+    def formatMessage(self, action, epoch, error, index = 0, output = None, isAvarage = False):
+
+        message = ''
+        message += action + '-- Epoch:' + str(epoch)
+        message += ' Example: ' + str(index) if not isAvarage else \
+            'AvarageError: ' + str(error)
+        if output:
+            message += ' Output: ' + str(output[0])
+
+        return message
+
 
 
 class TrainingSession(Session):
@@ -42,23 +65,23 @@ class TrainingSession(Session):
         return neuralNet.train(entity, label, learningRate)
 
 
-    def feedEntity(self, neuralNet, index, isBlastom):
+    def feedEntity(self, neuralNet, index):
         entity, label = self.getEntity(index, False)
         return neuralNet.feedForError(entity, label, learningRate)
 
-    def train(self):
+    def train(self, epoch):
         avgError = 0
         for index in range(1, self.trainingSetSize):
-            errors = self.trainOnEntity(self.neuralNet, index, True, self.learningRate)
-            avgError += abs(errors[r])
-            self.trainingLog.append(formatMessage('TRAINING', i, errors[r], index))
+            errors = self.trainOnEntity(self.neuralNet, index, self.learningRate)
+            avgError += abs(errors)
+            self.trainingLog.append(self.formatMessage('TRAINING', epoch, errors, index))
             print(self.trainingLog[-1])
 
-        self.trainingLog.append(formatMessage('TRAINING', i, \
+        self.trainingLog.append(self.formatMessage('TRAINING', epoch, \
              avgError/(trainingSetSize*2), isAvarage = True))
         print(self.trainingLog[-1])
 
-    def validate(self):
+    def validate(self, epoch):
 
         avgError = 0
         results = []
@@ -67,7 +90,7 @@ class TrainingSession(Session):
             output, error = self.feedEntity(neuralNet, index)
             results.append(output[0])
             avgError += abs(error)
-            self.trainingLog.append(formatMessage('VALIDATION', i, error, index, output))
+            self.trainingLog.append(self.formatMessage('VALIDATION', i, error, epoch, output))
             print(self.trainingLog[-1])
 
     def process(self, epoch):
@@ -75,7 +98,7 @@ class TrainingSession(Session):
         self.trainingLog.append\
         ('VALIDATION RESULTS : ' + str(results) + 'LIMIT: ' + str(limit))
         print(self.trainingLog[-1])
-        self.trainingLog.append(formatMessage('VALIDATION', i, \
+        self.trainingLog.append(self.formatMessage('VALIDATION', epoch, \
             currentAvgError, isAvarage = True))
         print(self.trainingLog[-1])
         saveEpoch(neuralNet, epoch, self.trainingLog, \
@@ -86,16 +109,16 @@ class TrainingSession(Session):
 
         print('Training set size: ', self.trainingSetSize, 'validationSetSize: ', self.validationSetSize)
 
-        if self.startEpoch == 1:
-            saveEpoch(self.neuralNet, 0, data = [str(self.gray), \
-                str(self.avaraged), str(self.shape), \
-                str(self.trainingSetFactor), str(self.validationSetFactor)])
+        #if self.startEpoch == 1:
+        #    saveEpoch(self.neuralNet, 0, data = [str(self.gray), \
+        #        str(self.avaraged), str(self.shape), \
+        #        str(self.trainingSetFactor), str(self.validationSetFactor)])
 
         lastAvgError = None
         for i in range(self.startEpoch, self.epochs + 1):
 
-            self.train()
-            self.validate()
+            self.train(i)
+            self.validate(i)
             self.process(i)
             learningRate *= drop
 

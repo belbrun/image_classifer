@@ -95,7 +95,7 @@ class NeuralNetwork():
         for index,layer in enumerate(self.layers[::-1]):
             base = 1.9
             #print(index, layer, learningRate * base**(index))
-            errors = layer.propagateBackwards(errors, learningRate * base**(index))
+            errors = layer.propagateBackwards(errors, learningRate)
             #print(layer, errors)
 
     def train(self, x, results, learningRate):
