@@ -38,7 +38,7 @@ class Session:
         message += action + '-- Epoch:' + str(epoch)
         message += ' Example: ' + str(index) if not isAvarage else \
             'AvarageError: ' + str(error)
-        if output:
+        if output is not None:
             message += ' Output: ' + str(output[0])
 
         return message
@@ -48,7 +48,7 @@ class Session:
 class TrainingSession(Session):
 
     def __init__(self, datasetSize, trainingSetFactor, validationSetFactor,
-            datasetPath, learningRate = 0.01,
+            datasetPath, networkPath, learningRate = 0.01,
             drop = 1, startEpoch = 0, epochs = 0):
         self.startEpoch = startEpoch
         self.epochs = epochs
@@ -56,6 +56,7 @@ class TrainingSession(Session):
         self.learningRate = learningRate
         self.trainingLog = []
         self.datasetPath = datasetPath
+        self.networkPath = networkPath
         self.datasetSize = datasetSize
         self.trainingSetSize = int(round(datasetSize * trainingSetFactor / 2))
         self.validationSetSize = int(round(datasetSize * validationSetFactor/2))
@@ -67,7 +68,7 @@ class TrainingSession(Session):
 
     def feedEntity(self, neuralNet, index):
         entity, label = self.getEntity(index, False)
-        return neuralNet.feedForError(entity, label, learningRate)
+        return neuralNet.feedForError(entity, label)
 
     def train(self, epoch):
         avgError = 0
@@ -78,7 +79,7 @@ class TrainingSession(Session):
             print(self.trainingLog[-1])
 
         self.trainingLog.append(self.formatMessage('TRAINING', epoch, \
-             avgError/(trainingSetSize*2), isAvarage = True))
+             avgError/(self.trainingSetSize), isAvarage = True))
         print(self.trainingLog[-1])
 
     def validate(self, epoch):
@@ -87,23 +88,29 @@ class TrainingSession(Session):
         results = []
 
         for index in range(self.trainingSetSize, self.trainingSetSize + self.validationSetSize):
-            output, error = self.feedEntity(neuralNet, index)
+            output, error = self.feedEntity(self.neuralNet, index)
             results.append(output[0])
             avgError += abs(error)
-            self.trainingLog.append(self.formatMessage('VALIDATION', i, error, epoch, output))
+            self.trainingLog.append(self.formatMessage('VALIDATION', index, error, epoch, output))
             print(self.trainingLog[-1])
 
-    def process(self, epoch):
-        currentAvgError =  avgError/(validationSetSize*2)
         self.trainingLog.append\
-        ('VALIDATION RESULTS : ' + str(results) + 'LIMIT: ' + str(limit))
+        ('VALIDATION RESULTS : ' + str(results))
         print(self.trainingLog[-1])
         self.trainingLog.append(self.formatMessage('VALIDATION', epoch, \
-            currentAvgError, isAvarage = True))
+            avgError/(self.validationSetSize), isAvarage = True))
         print(self.trainingLog[-1])
-        saveEpoch(neuralNet, epoch, self.trainingLog, \
-        [str(gray), str(avaraged), str(shape), str(trainingSetFactor), \
-        str(validationSetFactor)])
+
+    def process(self, epoch):
+
+        self.saveEpoch(self.neuralNet, epoch, self.trainingLog)
+
+    def saveEpoch(self, neuralNet, epoch, log = None, data = None):
+        path = self.networkPath + 'epoch' + str(epoch) + '/'
+        datautil.makeDirectory(path)
+        neuralNet.save(path)
+        if log:
+            datautil.writeLog(path, log)
 
     def start(self):
 

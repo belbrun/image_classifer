@@ -95,13 +95,18 @@ class SoftMax(Function):
         return classValues/np.sum(classValues)
 
     def derived(self, x):
-        values, index = x
-        softmax = self.activate(values)
-        result = 0
-        for i in range(0, len(values)):
-            result += softmax[i]*(1-softmax[i]) if i == index else \
-                        -softmax[i]*softmax[index]
-        return result
+        softmax = self.activate(x)
+        jacobian = np.zeros((len(x), len(x)))
+        for index, value in enumerate(softmax):
+            for i in range(0, len(x)):
+                if i == index:
+                    jacobian[index, i] += softmax[i]*(1-softmax[i])
+                else:
+                    jacobian[index, i] += -softmax[i]*softmax[index]
+
+            #result += softmax[i]*(1-softmax[i]) if i == index else \
+            #            -softmax[i]*softmax[index]
+        return jacobian
 
     def getName(self):
         return 'smax'
@@ -124,6 +129,7 @@ activationFunctions = {'sig': Sigmoid(), 'relu': ReLU(), 'lrelu': LeakyReLU(), \
 'tanh': TanHiperbolic(), 'smax': SoftMax(), 'ratio': RatioFunction()}
 
 
+
 class CrossEntropy(Function):
 
     def activate(self, outputValue, correctValue):
@@ -133,10 +139,26 @@ class CrossEntropy(Function):
 
     def derived(self, outputValue, correctValue):
         #return (1-correctValue)/outputValue - correctValue/(1-outputValue) #change error values
+        print('CEIN: ', outputValue, correctValue)
         return (1-correctValue)/(1-outputValue) - correctValue/outputValue
 
     def getName(self):
         return 'centropy'
+
+class CategoricCrossEntropy(Function):
+
+    def activate(self, outputValue, correctValue):
+        result = 0
+        for index, output in enumerate(outputValue):
+            result += -output*correctValue[index]
+        return result
+
+    def derived(self, outputValue, correctValue):
+        print('CEIN: ', outputValue, correctValue)
+        return (1-correctValue)/(1-outputValue) - correctValue/outputValue
+
+
+
 
 if __name__ == '__main__':
     x = RatioFunction()

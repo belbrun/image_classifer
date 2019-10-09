@@ -52,7 +52,7 @@ class ConvolutionLayer(Layer):
 
     def __init__(self, filterNumber, filterSize, stride, activationFunction,\
                  inputDepth, filters = None, bias = None):
-                 
+
         if filters is not None:
             self.filters = filters
         else:
@@ -376,22 +376,26 @@ class FullyConnectedLayer(Layer):
         weightErrors = []
         previousErrors = np.zeros(self.inputSize)
         biasErrors = [0] * self.size
+        if self.softmax:
+            outputError = np.matmul(self.activationFunction.derived(self.z), errors)
+            print('OE: ', outputError)
+        else:
+            outputError = np.empty(self.size)
+            for neuronIndex in range(0, self.size):
+                outputError[neuronIndex] = errors[neuronIndex] * \
+                        self.activationFunction.derived(self.z[neuronIndex])
 
         for neuronIndex in range(0, self.size):
 
             weightErrors.append(np.zeros(self.inputSize))
-            gradientArg = (self.z, neuronIndex) if self.softmax else \
-                            self.z[neuronIndex]
-            outputError = errors[neuronIndex] * \
-                self.activationFunction.derived(gradientArg)
             for i in range(self.inputSize):
 
                 weightErrors[neuronIndex][i] += \
-                    self.data[i] * outputError
+                    self.data[i] * outputError[neuronIndex]
                 previousErrors[i] += \
-                    self.weights[neuronIndex][i] * outputError
+                    self.weights[neuronIndex][i] * outputError[neuronIndex]
 
-            biasErrors += self.bias[neuronIndex] * outputError
+            biasErrors += self.bias[neuronIndex] * outputError[neuronIndex]
 
         self.correctWeights(weightErrors, biasErrors, learningRate)
         return previousErrors
