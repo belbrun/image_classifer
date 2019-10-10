@@ -58,6 +58,14 @@ def loadData(path, old = False):
     with open(path + name, 'r+') as file:
         return file.read().split('|')
 
+def makeDirectory(path):
+    os.mkdir(path)
+
+def writeLog(path, log):
+    with open(path + 'log.txt', 'w+') as file:
+        for line in log:
+            file.write(line + '\n')
+
 if __name__ == '__main__':
     im = getEntity(1271, True)
     print(im[1])

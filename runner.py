@@ -1,17 +1,17 @@
 from sessions import *
 
 # dataset info
-datasetSize = 10
+datasetSize = 20000
 
 # dataset division
-trainingSetFactor = 0.8
-validationSetFactor = 0.2
+trainingSetFactor = 0.95
+validationSetFactor = 0.05
 
 
 # training factors
-drop = 1
-learningRate = 0.05
-epochs = 1
+drop = 0.99
+learningRate = 0.01
+epochs = 10
 startEpoch = 1
 
 datasetPath = 'dataset/2/ALL_IDB2/img/'

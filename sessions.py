@@ -58,8 +58,8 @@ class TrainingSession(Session):
         self.datasetPath = datasetPath
         self.networkPath = networkPath
         self.datasetSize = datasetSize
-        self.trainingSetSize = int(round(datasetSize * trainingSetFactor / 2))
-        self.validationSetSize = int(round(datasetSize * validationSetFactor/2))
+        self.trainingSetSize = int(round(datasetSize * trainingSetFactor))
+        self.validationSetSize = int(round(datasetSize * validationSetFactor))
 
     def trainOnEntity(self, neuralNet, index, learningRate):
         entity, label = self.getEntity(index, False)
@@ -89,14 +89,14 @@ class TrainingSession(Session):
 
         for index in range(self.trainingSetSize, self.trainingSetSize + self.validationSetSize):
             output, error = self.feedEntity(self.neuralNet, index)
-            results.append(output[0])
+            results.append(output)
             avgError += abs(error)
-            self.trainingLog.append(self.formatMessage('VALIDATION', index, error, epoch, output))
+            self.trainingLog.append(self.formatMessage('VALIDATION', epoch, error, index, output))
             print(self.trainingLog[-1])
 
-        self.trainingLog.append\
-        ('VALIDATION RESULTS : ' + str(results))
-        print(self.trainingLog[-1])
+        #self.trainingLog.append\
+        #('VALIDATION RESULTS : ' + str(results))
+        #print(self.trainingLog[-1])
         self.trainingLog.append(self.formatMessage('VALIDATION', epoch, \
             avgError/(self.validationSetSize), isAvarage = True))
         print(self.trainingLog[-1])
@@ -127,43 +127,30 @@ class TrainingSession(Session):
             self.train(i)
             self.validate(i)
             self.process(i)
-            learningRate *= drop
+            self.learningRate *= self.drop
 
         return self.trainingLog
 
 class TestingSession(Session):
 
-    def __init__(self, datasetPath, startIndex, endIndex, blastomCount, numOfEpochs = 1,
-        gray = False, shape = None,  rotations = False, avaraged = False):
-        self.datasetPath = datasetPath
-        self.startIndex = startIndex
-        self.endIndex = endIndex
-        self.blastomCount = blastomCount
-        self.numOfEpochs = numOfEpochs
-        self.gray = gray
-        self.shape = shape
-        self.rotations = rotations
-        self.avaraged = avaraged
+    def __init__(self, numOfExamples):
+        self.numOfExamples = numOfExamples
 
-    def testEntity(self, index, isBlastom):
-        index += 0 if isBlastom else self.blastomCount
-        return self.neuralNet.classify(self.getEntity(index, isBlastom)[0])
+
+    def testEntity(self, index):
+        entity, label = self.getEntity(index, test = True)
+        return (self.neuralNet.classify(entity), label)
 
     def start(self):
-        counts = [0,0,0] #correct, false positives, false negatives
-        for index in range(self.startIndex, self.endIndex + 1):
-            correct = bool(self.testEntity(index, True))
+        counts = [0,0] # correct, false
+        for index in range(1, numOfExamples):
+            (class, probability), label = self.testEntity(index)
 
-            if correct:
+            if class == label:
                 counts[0] += 1
             else:
                 counts[2] += 1
-            print('TEST----Example: ', index, '_1 Output: ', correct, ' Overall: ', counts)
+            print('TEST----Example: ', index, ' Label: ', label,
+                        ' Class: ',class, ' Overall: ', counts)
 
-            correct = not bool(self.testEntity(index, False))
-            if correct:
-                counts[0] += 1
-            else:
-                counts[1] += 1
-            print('TEST----Example: ', index, '_0 Output: ', correct, ' Overall: ', counts)
         return [round(x/sum(counts)*100, 2) for x in counts]

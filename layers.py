@@ -378,7 +378,6 @@ class FullyConnectedLayer(Layer):
         biasErrors = [0] * self.size
         if self.softmax:
             outputError = np.matmul(self.activationFunction.derived(self.z), errors)
-            print('OE: ', outputError)
         else:
             outputError = np.empty(self.size)
             for neuronIndex in range(0, self.size):

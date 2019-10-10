@@ -138,8 +138,7 @@ class CrossEntropy(Function):
                 (1-correctValue)*np.log(1-outputValue))
 
     def derived(self, outputValue, correctValue):
-        #return (1-correctValue)/outputValue - correctValue/(1-outputValue) #change error values
-        print('CEIN: ', outputValue, correctValue)
+
         return (1-correctValue)/(1-outputValue) - correctValue/outputValue
 
     def getName(self):
@@ -154,7 +153,6 @@ class CategoricCrossEntropy(Function):
         return result
 
     def derived(self, outputValue, correctValue):
-        print('CEIN: ', outputValue, correctValue)
         return (1-correctValue)/(1-outputValue) - correctValue/outputValue
 
 

@@ -13,7 +13,6 @@ class NeuralNetwork():
         """
         self.errorFunction = errorFunction
         self.layers = []
-        self.classificationLimit = classificationLimit
 
     def addLayer(self, layer):
         """
@@ -47,10 +46,12 @@ class NeuralNetwork():
 
     def classify(self, x):
         """
-            Return output as a classified value mapped to 1 or 0.
-            (used in binary classification).
+            Return a touple containing the label of class with highest output
+            value and the output for that label.
         """
-        return self.classifyResult(self.output(x)[0])
+        output = self.output(x)
+        argmax = np.argmax(output)
+        return (argmax, output[argmax])
 
     def feed(self, data):
         outputs = self.calculateOutputs(data)
@@ -96,30 +97,19 @@ class NeuralNetwork():
             base = 1.9
             #print(index, layer, learningRate * base**(index))
             errors = layer.propagateBackwards(errors, learningRate)
-            print(layer, errors)
+            #print(layer, errors)
 
     def train(self, x, results, learningRate):
         """
             Train the network on a single example using a given learning rate.
         """
         output = self.output(x)
-        print('O: ', output, 'C: ', results)
+        #print('O: ', output, 'C: ', results)
         errors = self.calculateError(output, results)
         self.learn(errors, learningRate)
         return errors
 
 
-
-    def classifyResult(self, result):
-        """
-            Classify result as a 1 or 0 value depending on the networks
-            classification limit.
-        """
-        print(result, self.classificationLimit, result > self.classificationLimit)
-        return int(result > self.classificationLimit)
-
-    def setClassificationLimit(self, classificationLimit):
-        self.classificationLimit = classificationLimit
 
     def save(self, path, data = None):
         """
@@ -127,12 +117,6 @@ class NeuralNetwork():
             Add any additional information as data in a list format. It will
             be saved to a config text file.
         """
-        if data:
-            data.append('{:01.15f}'.format(self.classificationLimit))
-        else:
-            print(str((self.classificationLimit)))
-
-            data = ['{:01.15f}'.format(self.classificationLimit)]
         datautil.saveData(path, data)
         for (index, layer) in enumerate(self.layers):
             newPath = path + str(index) + '/'
@@ -144,10 +128,6 @@ class NeuralNetwork():
             Load a network from the given path. Set load config to false if the
             config text file should not be used to initialize the loaded network.
         """
-        if loadConfig:
-            classificationLimit = float(datautil.loadData(path, loadConfig)[-2])
-        else :
-            classificationLimit = 0.5
         network = NeuralNetwork(classificationLimit = classificationLimit)
         for (index, id) in enumerate(datautil.getLayerIds(path)):
             network.addLayer(
