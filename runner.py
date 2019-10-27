@@ -21,8 +21,8 @@ def main():
 
     #train or test
 
-    train()
-    #test()
+    #train()
+    test()
 
 def train():
     #create training session
@@ -40,8 +40,7 @@ def train():
 
 def test():
     #create testing session
-    session = TestingSession(datasetPath, 100, 130, blastomCount, 1, gray, shape,
-        rotations, avaraged)
+    session = TestingSession(numOfExamples = 100)
 
     #initialize neural network
     #session.setNeuralNet(initializeNN())

@@ -128,7 +128,7 @@ class NeuralNetwork():
             Load a network from the given path. Set load config to false if the
             config text file should not be used to initialize the loaded network.
         """
-        network = NeuralNetwork(classificationLimit = classificationLimit)
+        network = NeuralNetwork()
         for (index, id) in enumerate(datautil.getLayerIds(path)):
             network.addLayer(
                 getLayerById(id).load(path + str(index) + '/'))

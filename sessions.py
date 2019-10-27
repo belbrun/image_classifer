@@ -48,14 +48,12 @@ class Session:
 class TrainingSession(Session):
 
     def __init__(self, datasetSize, trainingSetFactor, validationSetFactor,
-            datasetPath, networkPath, learningRate = 0.01,
-            drop = 1, startEpoch = 0, epochs = 0):
+        networkPath, learningRate = 0.01, drop = 1, startEpoch = 0, epochs = 0):
         self.startEpoch = startEpoch
         self.epochs = epochs
         self.drop = drop
         self.learningRate = learningRate
         self.trainingLog = []
-        self.datasetPath = datasetPath
         self.networkPath = networkPath
         self.datasetSize = datasetSize
         self.trainingSetSize = int(round(datasetSize * trainingSetFactor))
@@ -144,13 +142,13 @@ class TestingSession(Session):
     def start(self):
         counts = [0,0] # correct, false
         for index in range(1, numOfExamples):
-            (class, probability), label = self.testEntity(index)
+            (k, probability), label = self.testEntity(index)
 
-            if class == label:
+            if k == label:
                 counts[0] += 1
             else:
                 counts[2] += 1
             print('TEST----Example: ', index, ' Label: ', label,
-                        ' Class: ',class, ' Overall: ', counts)
+                        ' Class: ',k, ' Overall: ', counts)
 
         return [round(x/sum(counts)*100, 2) for x in counts]
