@@ -39,7 +39,13 @@ def getEntity(index, test = False):
     return ([getImage(open(path+image, 'rb'), index)], \
             getLabel(open(path+label, 'rb'), index))
 
-
+def getLayerIds(path):
+    layerIds = []
+    numOfLayers = len([i for i in os.listdir(path) if not i.endswith('.txt')])
+    for i in range(0, numOfLayers):
+        with open(path + str(i) + '/config.txt', 'r+') as file:
+            layerIds.append(file.read(4))
+    return layerIds
 
 def saveData(path, data):
     """

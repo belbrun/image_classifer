@@ -1,7 +1,7 @@
 from sessions import *
 
 # dataset info
-datasetSize = 20000
+datasetSize = 10000
 
 # dataset division
 trainingSetFactor = 0.95
@@ -15,19 +15,20 @@ epochs = 10
 startEpoch = 1
 
 datasetPath = 'dataset/2/ALL_IDB2/img/'
-networkPath = 'network_data/mnist/'
+networkPath = 'network_data/mnist/epoch1/'
+
 
 def main():
 
     #train or test
 
-    #train()
-    test()
+    train()
+    #test()
 
 def train():
     #create training session
     session = TrainingSession(datasetSize, trainingSetFactor, validationSetFactor,
-         datasetPath, networkPath, learningRate, drop, startEpoch, epochs)
+         networkPath, learningRate, drop, startEpoch, epochs)
 
     #initialize neural network
     session.setNeuralNet(initializeNN())
@@ -40,7 +41,7 @@ def train():
 
 def test():
     #create testing session
-    session = TestingSession(numOfExamples = 100)
+    session = TestingSession(numOfExamples = 10000)
 
     #initialize neural network
     #session.setNeuralNet(initializeNN())

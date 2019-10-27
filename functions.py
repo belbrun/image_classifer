@@ -68,7 +68,8 @@ class LeakyReLU(Function):
             lambda x : x * (x > 0) + (.1 * x) * (x < 0))
 
     def derived(self, x):
-
+        #print('X:  ',x)
+        #print('fd(X): ', 1 * (x > 0) + 0.1 * (x < 0))
         return 1 * (x > 0) + 0.1 * (x < 0)
 
     def getName(self):
@@ -91,7 +92,8 @@ class TanHiperbolic(Function):
 class SoftMax(Function):
 
     def activate(self, data):
-        classValues = np.exp(data)
+        classValues = np.exp(data - np.avarage(data))
+        print('SM: ', classValues)
         return classValues/np.sum(classValues)
 
     def derived(self, x):

@@ -25,7 +25,7 @@ class Session:
 
     def convertLabel(self, label):
         """
-            Create a numpy array containing a correct classification result for
+            Create a numpy array containing a one-hot encoded numpy array for
             a given label.
         """
         resultArray = np.zeros(10)
@@ -139,15 +139,16 @@ class TestingSession(Session):
         entity, label = self.getEntity(index, test = True)
         return (self.neuralNet.classify(entity), label)
 
+
     def start(self):
         counts = [0,0] # correct, false
-        for index in range(1, numOfExamples):
+        for index in range(1, self.numOfExamples):
             (k, probability), label = self.testEntity(index)
-
+            label = np.argmax(label)
             if k == label:
                 counts[0] += 1
             else:
-                counts[2] += 1
+                counts[1] += 1
             print('TEST----Example: ', index, ' Label: ', label,
                         ' Class: ',k, ' Overall: ', counts)
 

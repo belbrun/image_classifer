@@ -2,8 +2,8 @@ import numpy as np
 import datautil
 from functions import getActivationFunction
 
-minWeight = -0.5
-maxWeight = 0.5
+minWeight = 1
+maxWeight = 1.1
 
 class Layer:
     """
@@ -393,7 +393,7 @@ class FullyConnectedLayer(Layer):
                     self.data[i] * outputError[neuronIndex]
                 previousErrors[i] += \
                     self.weights[neuronIndex][i] * outputError[neuronIndex]
-
+                #print('W, OE: ', self.weights[neuronIndex][i], outputError[neuronIndex])
             biasErrors += self.bias[neuronIndex] * outputError[neuronIndex]
 
         self.correctWeights(weightErrors, biasErrors, learningRate)
